@@ -1,0 +1,93 @@
+
+
+
+[User]
+*id
+email
+is_verified
+
+[Token]
+*id
+userId
+appId
+deviceId
+type
+token
+expires_at
+created_at
+revoked_at 
+
+[Device]
+*id
+userId
+device_type
+device_info
+ip_address
+
+[Ip]
+*id
+deviceId
+ip_address
+
+[UserAccount]
+*id
+userId
+appId
+username
+password
+status
+created_at
+
+[Application]
+id
+name
+
+[UserProfile]
+*id
+userId
+first_name
+last_name
+phone_number
+address
+profile_picture
+
+[Role]
+*id
+name
+description
+
+[Permission]
+*id
+name
+description
+
+[UserRole]
+*id
+userId
+roleId
+
+[AuditLog]
+*id
+appId
+userAccountId
+deviceId
+action
+action_type 
+timestamp
+metadata
+
+Token *--? Device
+Token *--1 Application
+User +--* Device
+AuditLog *--? Device
+AuditLog *--1 Application
+Ip *--* Device
+User 1--* UserAccount
+User 1--1 UserProfile
+User 1--* Token
+User 1--* UserRole
+UserRole *--* Role
+Role *--* Permission
+UserAccount *--1 Application
+UserAccount 1--* AuditLog
+
