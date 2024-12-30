@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  email       String  @unique
+  is_verified Boolean @default(false)
+  profile     Json    @default("{}")
+
+  roles    UserRole[]    @relation("UserRoles")
+  accounts UserAccount[] @relation("UserAccounts")
+  tokens   Token[]       @relation("UserTokens")
+  devices  Device[]      @relation("UserDevices")
+}
+
+model UserRole {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  roleId String @db.ObjectId
+
+  user User @relation("UserRoles", fields: [userId], references: [id])
+  role Role @relation("UserRoleToRole", fields: [roleId], references: [id])
+}
+
+model Role {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name        String
+  description String?
+
+  userRoles      UserRole[]       @relation("UserRoleToRole")
+  rolePermission RolePermission[] @relation("RolePermissions")
+}
+
+model RolePermission {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  roleId       String @db.ObjectId
+  permissionId String @db.ObjectId
+
+  role       Role       @relation("RolePermissions", fields: [roleId], references: [id])
+  permission Permission @relation("PermissionToRolePermission", fields: [permissionId], references: [id])
+}
+
+model Permission {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name        String
+  description String?
+
+  rolePermissions RolePermission[] @relation("PermissionToRolePermission")
+}
+
+model UserAccount {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  appId  String @db.ObjectId
+
+  username   String
+  password   String
+  status     String
+  created_at DateTime @default(now())
+
+  user        User        @relation("UserAccounts", fields: [userId], references: [id])
+  application Application @relation("ApplicationUsers", fields: [appId], references: [id])
+}
+
+model Token {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String  @db.ObjectId
+  appId    String? @db.ObjectId
+  deviceId String? @db.ObjectId
+
+  type       String
+  token      String
+  expires_at DateTime
+  created_at DateTime  @default(now())
+  revoked_at DateTime?
+
+  user        User         @relation("UserTokens", fields: [userId], references: [id])
+  device      Device?      @relation("DeviceTokens", fields: [deviceId], references: [id])
+  application Application? @relation("ApplicationTokens", fields: [appId], references: [id])
+}
+
+model Device {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+
+  device_type String
+  device_info String?
+  ip_address  String
+
+  user   User    @relation("UserDevices", fields: [userId], references: [id])
+  ips    Ip[]    @relation("DeviceIps")
+  tokens Token[] @relation("DeviceTokens")
+}
+
+model Ip {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  deviceId String @db.ObjectId
+
+  ip_address String
+
+  device Device @relation("DeviceIps", fields: [deviceId], references: [id])
+}
+
+model Application {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name String
+
+  users  UserAccount[] @relation("ApplicationUsers")
+  tokens Token[]       @relation("ApplicationTokens")
+}

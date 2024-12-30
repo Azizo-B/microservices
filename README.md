@@ -1,11 +1,17 @@
 # Microservices
+
+- ### [User service ERD](#user-service-erd)
+
+---
+
 ![Microservices](overview.png)
 
+## User service ERD
 
-## ERD
 ![erd](https://kroki.io/erd/svg/eNp1Uk1PwzAMvftX5DzUw34BmsSlEocJwWlCUUhcsGgbK0kH_HvysawpGpfWffZ7frYLAKcXj-4VdmQAJ0UjkJdndDQQmph9tp84l_QSC3sDijk-DZ5JYwzCDyOEVAX4zeTQSxVAO1QBTQodnmM2hSLqPWTeRrBIySx0iWkeLBBLZUwU9JHXc-Fc-26yaYaD1naZww2v6WNWEwIr77-sM-CDCotvXcLpwDySVoFsnDdKZEaRPjo70Lh1PZDzQeaiUdWIP-yMcl6mN3RQ7XFhSyYdFpc0n2wVyyyDXjvi1Dkmj-gm8j7b-KckeVo1LoZcBPp0ssNiKDza95JdV3BZUHs8pbNieeULCAg0YdzPxDBhUEYFBZD_ArHruntRDrgie9EsDpIzcdd1u1pXzWzILbjl95ywKzvL7RPQXPiK7kVznKY2e_vDTeuCGpQeGVo_171D0-z2iDWZ5es0AL9RzBy_)
 
 ## User Service URIs
+
 ### **Users**
 
 1. **Get a list of users** (`GET /users`):  
@@ -141,14 +147,18 @@
 ## **User Service Flow Documentation (Corrected)**
 
 ### **1. User Signup Flow**
+
 **Objective:**  
 The signup flow creates a user account linked to both the user and the app from which the user is signing up. If the user already exists, create an entry in the `user_accounts` table for that user with the provided `appId`, `username`, and `password`. If the user doesn't exist, create a new user with the provided email and created_at timestamp, then create an entry in `user_accounts` with the `userId`, `appId`, `username`, and `password`.
 
 #### **Steps:**
+
 1. **Receive Signup Request:**
+
    - The user sends a signup request with `email`, `username`, `password`, and `appId`.
 
 2. **Check if User Already Exists:**
+
    - Search for an existing user by `email`.
      - **If the user exists:**
        - Create a new record in `user_accounts` linked to the existing `userId`, with the new `appId`, `username`, and hashed `password`.
@@ -157,6 +167,7 @@ The signup flow creates a user account linked to both the user and the app from 
        - Create a new record in `user_accounts` linked to the new `userId`, with the `appId`, `username`, and hashed `password`.
 
 3. **Track Device and IP:**
+
    - Track the `device` used for the signup request.
      - If the device already exists, add the new IP to the device’s list of IPs.
      - If the device does not exist, create a new device entry and associate it with the user.
@@ -166,6 +177,7 @@ The signup flow creates a user account linked to both the user and the app from 
    - Return a success message with the `userId` and `appId` (for new users) or an updated message for existing users.
 
 #### **Example Flow:**
+
 ```plaintext
 User: {"email": "john@example.com", "username": "john_doe", "password": "password123", "appId": "app123"}
 Service:
@@ -180,33 +192,39 @@ Response:
 ---
 
 ### **2. User Login Flow**
+
 **Objective:**  
 During login, validate the user's credentials specific to the app. Check if a valid entry exists in `user_accounts` for that user and `appId`. If valid, authenticate the user by verifying the password.
 
 #### **Steps:**
+
 1. **Receive Login Request:**
+
    - The user sends a login request with `email`, `password`, and `appId`.
 
 2. **Find the User:**
    - Search for the user by `email`.
      - **If the user does not exist**, return an error indicating invalid credentials.
-   
 3. **Check for App-Specific Account:**
+
    - Check if there is a record in `user_accounts` for the user and `appId`.
      - **If no account exists for that app**, return an error indicating that no account is found for the app.
 
 4. **Validate Password:**
+
    - Compare the entered password with the stored password hash for that `appId` in the `user_accounts` table.
      - **If valid**, proceed to the next step.
      - **If invalid**, return an error indicating incorrect credentials.
 
 5. **Track Device and IP:**
+
    - Track the device used for the login request.
      - If the device already exists, update the IP list.
      - If the device is new, create a new device record and associate it with the user.
    - Add the current IP address to the list of IPs associated with the device.
 
 6. **Generate Session Token:**
+
    - Generate a session token for the user, linking it to the `userId` and `appId`.
    - Return the session token to the client for future use.
 
@@ -214,6 +232,7 @@ During login, validate the user's credentials specific to the app. Check if a va
    - Return a success message with the session token.
 
 #### **Example Flow:**
+
 ```plaintext
 User: {"email": "john@example.com", "password": "password123", "appId": "app123"}
 Service:
@@ -229,16 +248,20 @@ Response:
 ---
 
 ### **3. Device and IP Tracking**
+
 **Objective:**  
 Track the devices and IP addresses associated with each user. Devices are linked to specific users and apps, and each device can have multiple associated IP addresses.
 
 #### **Steps:**
+
 1. **Track Device:**
+
    - When a user logs in or signs up, record the device information (e.g., device type, OS).
    - If the device already exists, update the associated IP addresses.
    - If the device is new, create a new device record and link it to the user.
 
 2. **Track IP:**
+
    - Add the current IP address to the device's list of IPs.
    - If the device is already associated with the IP, skip adding it.
 
@@ -246,6 +269,7 @@ Track the devices and IP addresses associated with each user. Devices are linked
    - No response needed for tracking, but ensure IPs are added correctly to the device.
 
 #### **Example Flow:**
+
 ```plaintext
 Device: {"device_id": "device123", "userId": "user123", "appId": "app123", "ip": "192.168.0.1"}
 Service:
@@ -257,15 +281,19 @@ Service:
 ---
 
 ### **4. User Authentication & Token Management**
+
 **Objective:**  
 Use session tokens for user authentication across different services.
 
 #### **Steps:**
+
 1. **User Logs In (Session Token Generation):**
+
    - After successful login, generate a session token for the user linked to their `userId` and `appId`.
    - The session token is returned to the client to be used in subsequent requests for user verification.
 
 2. **Token Verification (For Other Services):**
+
    - Other services can verify the session token by querying the `user_sessions` table or performing token validation to ensure the request is from an authenticated user.
 
 3. **Token Revocation:**
@@ -273,6 +301,7 @@ Use session tokens for user authentication across different services.
    - Revoking a token invalidates the session and the user must log in again.
 
 #### **Example Flow:**
+
 ```plaintext
 User: {"token": "abcdef12345"}
 Service:
