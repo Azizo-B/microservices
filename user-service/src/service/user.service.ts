@@ -6,8 +6,10 @@ export async function getAllUsers() {
 }
 
 export async function createUser(email: string) {
+  await prisma.user.findUnique({ where: { email: email } });
+
   const user = await prisma.user.create({
-    data: { email: email, is_verified: false, profile: {} },
+    data: { email: email },
   });
   return user;
 }

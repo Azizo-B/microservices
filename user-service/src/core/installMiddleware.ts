@@ -13,7 +13,7 @@ const NODE_ENV = config.get<string>("env");
 const CORS_ORIGINS = config.get<string[]>("cors.origins");
 const CORS_MAX_AGE = config.get<number>("cors.maxAge");
 
-export default function installMiddlewares(app: Application) {
+export function installMiddlewares(app: Application) {
   app.use(
     cors({
       origin: (origin: any, callback: any) => {
@@ -50,7 +50,9 @@ export default function installMiddlewares(app: Application) {
 
     next();
   });
+}
 
+export function installErrorHandlers(app: Application) {
   app.use((err: any, _: Request, res: Response, _next: NextFunction) => {
     getLogger().error("Error occurred while handling a request", { error: err });
 
@@ -61,31 +63,39 @@ export default function installMiddlewares(app: Application) {
       details: err.details,
       stack: NODE_ENV !== "production" ? err.stack : undefined,
     };
-
+  
     if (err instanceof ServiceError) {
       errorBody.message = err.message;
-
+  
       if (err.isNotFound) {
         statusCode = 404;
       }
-
+  
       if (err.isValidationFailed) {
         statusCode = 400;
       }
-
+  
       if (err.isUnauthorized) {
         statusCode = 401;
       }
-
+  
       if (err.isForbidden) {
         statusCode = 403;
       }
-
+  
       if (err.isConflict) {
         statusCode = 409;
       }
     }
-
+  
     res.status(statusCode).json(errorBody);
   });
+
+  app.use((req, res, _) => {
+    res.status(404).json({
+      code: "NOT_FOUND",
+      message: `Unknown resource: ${req.url}`,
+    });
+  });
+
 }

@@ -77,3 +77,5 @@ const validate = (scheme: RequestValidationSchemeInput | null) => {
 };
 
 export default validate;
+
+export const objectIdValidation = Joi.string().hex().length(24);

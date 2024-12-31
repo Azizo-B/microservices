@@ -11,7 +11,8 @@
     "start:dev": "tsx watch --env-file .env src/index.ts",
     "start": "node --env-file .env dist/src/index.js",
     "build": "tsc",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "migrate:dev": "prisma db push"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

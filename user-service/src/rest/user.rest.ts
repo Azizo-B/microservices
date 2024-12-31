@@ -13,9 +13,9 @@ async function createUser(req: Request, res: Response) {
   const user = await userService.createUser(req.body.email);
   res.send(user);
 }
-createUser.validationScheme = {body: {email: Joi.string().email()}};
+createUser.validationScheme = {body: {email: Joi.string().email().lowercase()}};
 
-export default function installUserRoutes(parentRouter: Router) {
+export function installUserRoutes(parentRouter: Router) {
   const router = Router();
 
   router.get("/", getAllUsers);

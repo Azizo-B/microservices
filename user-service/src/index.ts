@@ -2,7 +2,7 @@ import config from "config";
 import express, { Application } from "express";
 import { getLogger } from "./core/logging";
 
-import installMiddlewares from "./core/installMiddleware";
+import { installErrorHandlers, installMiddlewares } from "./core/installMiddleware";
 import { initializeData, shutdownData } from "./data";
 import installRest from "./rest";
 
@@ -20,13 +20,7 @@ async function createServer(): Promise<Server> {
   installMiddlewares(app);
   await initializeData();
   installRest(app);
-
-  app.use((req, res, _) => {
-    res.status(404).json({
-      code: "NOT_FOUND",
-      message: `Unknown resource: ${req.url}`,
-    });
-  });
+  installErrorHandlers(app);
 
   return {
     getApp() {
