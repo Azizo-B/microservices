@@ -25,7 +25,7 @@ const rootLogger: winston.Logger = winston.createLogger({
     }),
     winston.format.printf(({ level, timestamp, message }) => {
       return `[${ENV_STRINGS[ENV]}] - [${level}] - ${timestamp} - ${message}`;
-    })
+    }),
   ),
   transports: [new winston.transports.Console({ silent: LOG_DISABLED })],
 });

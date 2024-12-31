@@ -21,6 +21,13 @@ async function createServer(): Promise<Server> {
   await initializeData();
   installRest(app);
 
+  app.use((req, res, _) => {
+    res.status(404).json({
+      code: "NOT_FOUND",
+      message: `Unknown resource: ${req.url}`,
+    });
+  });
+
   return {
     getApp() {
       return app;

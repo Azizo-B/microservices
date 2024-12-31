@@ -36,7 +36,6 @@ export default tseslint.config(
             '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
             '@stylistic/no-inner-declarations': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/consistent-type-imports': 'error',
             '@typescript-eslint/no-empty-object-type': 'off',
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
         },

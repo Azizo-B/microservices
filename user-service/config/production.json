@@ -1,0 +1,7 @@
+{
+  "auth": {
+    "jwt": {
+      "expirationInterval": 604800
+    }
+  }
+}

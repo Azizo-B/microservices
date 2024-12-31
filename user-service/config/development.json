@@ -1,0 +1,8 @@
+{
+  "auth": {
+    "jwt": {
+      "expirationInterval": 3600,
+      "secret": "eenveeltemoeilijksecretdatniemandooitzalradenandersisdesitegehacked"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "port": 9000,
+  "log": {
+    "level": "silly",
+    "disabled": false
+  },
+  "cors": {
+    "origins": ["http://localhost:9000"],
+    "maxAge": 10800
+  },
+  "auth": {
+    "maxDelay": 5000,
+    "argon": {
+      "hashLength": 32,
+      "timeCost": 6,
+      "memoryCost": 131072
+    },
+    "jwt": {
+      "audience": "user.service",
+      "issuer": "user.service"
+    }
+  }
+}

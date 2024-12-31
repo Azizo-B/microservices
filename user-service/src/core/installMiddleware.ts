@@ -17,15 +17,12 @@ export default function installMiddlewares(app: Application) {
   app.use(
     cors({
       origin: (origin: any, callback: any) => {
-        if (CORS_ORIGINS.indexOf(origin!) !== -1) {
-          callback(null, origin);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
+        const allowedOrigin = origin && CORS_ORIGINS.includes(origin) ? origin : CORS_ORIGINS[0] || "";
+        callback(null, allowedOrigin);
       },
       allowedHeaders: ["Accept", "Content-Type", "Authorization"],
       maxAge: CORS_MAX_AGE,
-    })
+    }),
   );
 
   app.use(express.json());
@@ -54,7 +51,7 @@ export default function installMiddlewares(app: Application) {
     next();
   });
 
-  app.use((err: any, _: Request, res: Response) => {
+  app.use((err: any, _: Request, res: Response, _next: NextFunction) => {
     getLogger().error("Error occurred while handling a request", { error: err });
 
     let statusCode = err.status || 500;
@@ -90,12 +87,5 @@ export default function installMiddlewares(app: Application) {
     }
 
     res.status(statusCode).json(errorBody);
-  });
-
-  app.use((req: Request, res: Response) => {
-    res.status(404).json({
-      code: "NOT_FOUND",
-      message: `Unknown resource: ${req.url}`,
-    });
   });
 }
