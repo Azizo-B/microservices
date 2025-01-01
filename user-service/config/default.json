@@ -16,8 +16,8 @@
       "memoryCost": 131072
     },
     "jwt": {
-      "audience": "user.service",
-      "issuer": "user.service"
+      "audience": "all",
+      "issuer": "user-service"
     }
   }
 }
