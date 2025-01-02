@@ -43,7 +43,6 @@ export const createDevice = async (req: Request) => {
   let device = await prisma.device.findFirst({
     where: {
       userId: req.userId,
-      ipAddress,
       userAgent: userAgent,
     },
   });
@@ -68,3 +67,10 @@ export const createDevice = async (req: Request) => {
   
   return device.id;
 };
+  
+export function linkTokenToDevice(tokenId: string, deviceId: string) {
+  return prisma.token.update({
+    where: { id: tokenId },
+    data: { deviceId },
+  });
+}

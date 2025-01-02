@@ -56,7 +56,7 @@ export const login = async (userLoginInput: UserLoginInput, deviceId?: string) =
     user.id, { type: "session", appId: userLoginInput.appId, deviceId: deviceId },
   );
 
-  return token.token;
+  return token;
 };
 
 export const checkAndParseToken = async (authHeader?: string): Promise<string> => {

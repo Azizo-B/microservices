@@ -8,6 +8,8 @@ async function main() {
 
   // Delete all entities
   await prisma.token.deleteMany({});
+  await prisma.ip.deleteMany({});
+  await prisma.device.deleteMany({});
   await prisma.userAccount.deleteMany({});
   await prisma.userRole.deleteMany({});
   await prisma.rolePermission.deleteMany({});

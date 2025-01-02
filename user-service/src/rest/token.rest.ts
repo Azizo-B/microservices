@@ -2,7 +2,7 @@ import { Token } from "@prisma/client";
 import { NextFunction, Request, Response, Router } from "express";
 import Joi from "joi";
 import { authDelay, requireAuthentication } from "../core/auth";
-import { collectDeviceInfo, createDevice } from "../core/collectDeviceInfo";
+import { collectDeviceInfo, createDevice, linkTokenToDevice } from "../core/collectDeviceInfo";
 import validate, { objectIdValidation } from "../core/validation";
 import * as tokenService from "../service/token.service";
 import * as userService from "../service/user.service";
@@ -30,9 +30,11 @@ createToken.validationSchema = {
 
 export async function login(req: Request<{}, {}, UserLoginInput>, res: Response<string>, next: NextFunction) {
   try {
+    const token = await userService.login(req.body);
+    req.userId = token.userId;
     const deviceId = await createDevice(req);
-    const token = await userService.login(req.body, deviceId);
-    res.status(201).send(token);
+    linkTokenToDevice(token.id, deviceId);
+    res.status(201).send(token.token);
   } catch (error) {
     next(error);
   }
