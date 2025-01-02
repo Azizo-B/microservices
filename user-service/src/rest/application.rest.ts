@@ -15,7 +15,7 @@ async function createApplication(
   req: Request<{}, {}, CreateApplicationInput>, res: Response<Application>, next: NextFunction,
 ) {
   try{
-    const application = await applicationService.createApplication(req.body.name);
+    const application = await applicationService.createApplication(req.body);
     res.status(201).send(application);
   }catch(error){
     next(error);
@@ -49,7 +49,7 @@ async function updateApplication(
   req: Request<EntityId, {}, UpdateApplicationInput>, res: Response<Application>, next: NextFunction,
 ) {
   try{
-    const application = await applicationService.updateApplication(req.params.id, req.body.name);
+    const application = await applicationService.updateApplication(req.params.id, req.body);
     res.send(application);
   } catch(error){
     next(error);

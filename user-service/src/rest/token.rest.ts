@@ -2,6 +2,7 @@ import { Token } from "@prisma/client";
 import { NextFunction, Request, Response, Router } from "express";
 import Joi from "joi";
 import { authDelay, requireAuthentication } from "../core/auth";
+import { collectDeviceInfo, createDevice } from "../core/collectDeviceInfo";
 import validate, { objectIdValidation } from "../core/validation";
 import * as tokenService from "../service/token.service";
 import * as userService from "../service/user.service";
@@ -13,7 +14,8 @@ import { UserLoginInput } from "../types/user.types";
 // TODO: send email with token -> Notification service
 export async function createToken(req: Request<{}, {}, CreateTokenInput>, res: Response<Token>, next: NextFunction) {
   try {
-    const token = await tokenService.createToken(req.userId, { ...req.body });
+    req.body.deviceId = req.deviceId;
+    const token = await tokenService.createToken(req.userId, req.body);
     res.status(201).send(token);
   } catch (error) {
     next(error);
@@ -22,15 +24,15 @@ export async function createToken(req: Request<{}, {}, CreateTokenInput>, res: R
 createToken.validationSchema = {
   body: {
     appId: objectIdValidation,
-    deviceId: Joi.string().optional(),
     type: Joi.string().valid("verification", "password_reset"),
   },
 };
 
 export async function login(req: Request<{}, {}, UserLoginInput>, res: Response<string>, next: NextFunction) {
   try {
-    const sessionToken = await userService.login(req.body);
-    res.status(201).send(sessionToken);
+    const deviceId = await createDevice(req);
+    const token = await userService.login(req.body, deviceId);
+    res.status(201).send(token);
   } catch (error) {
     next(error);
   }
@@ -52,6 +54,7 @@ export async function getAllTokens(req: Request, res: Response<ListResponse<Toke
   }
 }
 getAllTokens.validationSchema = null;
+
 export async function getTokenById(req: Request<EntityId>, res: Response<TokenWithStatus>, next: NextFunction) {
   try {
     const token = await tokenService.getTokenById(req.userId, req.params.id);
@@ -85,10 +88,10 @@ export function installTokenRoutes(parentRouter: Router) {
 
   // TODO: check if user is verified
   router.post("/sessions", validate(login.validationSchema), authDelay, login);
-  router.post("/", requireAuthentication, validate(createToken.validationSchema), createToken);
-  router.get("/", requireAuthentication, validate(getAllTokens.validationSchema), getAllTokens);
-  router.get("/:id", requireAuthentication, validate(getTokenById.validationSchema), getTokenById);
-  router.delete("/:id",  requireAuthentication, validate(deleteToken.validationSchema), deleteToken);
+  router.post("/", requireAuthentication, collectDeviceInfo, validate(createToken.validationSchema), createToken);
+  router.get("/", requireAuthentication, collectDeviceInfo, validate(getAllTokens.validationSchema), getAllTokens);
+  router.get("/:id", requireAuthentication, collectDeviceInfo, validate(getTokenById.validationSchema), getTokenById);
+  router.delete("/:id",  requireAuthentication, collectDeviceInfo, validate(deleteToken.validationSchema), deleteToken);
 
   parentRouter.use("/tokens", router);
 };

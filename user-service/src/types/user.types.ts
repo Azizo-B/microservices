@@ -4,7 +4,7 @@ export interface UserLoginInput{
   password: string;
 }
 
-export interface UserSigninInput{
+export interface UserSignupInput{
   appId: string;
   username: string;
   email: string;

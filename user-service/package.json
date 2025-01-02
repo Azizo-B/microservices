@@ -22,12 +22,14 @@
     "config": "^3.3.12",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "geoip-lite": "^1.4.10",
     "helmet": "^8.0.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.1.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "ua-parser-js": "^2.0.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
@@ -35,6 +37,7 @@
     "@types/config": "^3.3.5",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/geoip-lite": "^1.4.4",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.7",

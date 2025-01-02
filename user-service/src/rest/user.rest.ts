@@ -3,10 +3,11 @@ import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import Joi from "joi";
 import { authDelay, requireAuthentication, requirePermission } from "../core/auth";
+import { collectDeviceInfo, createDevice } from "../core/collectDeviceInfo";
 import validate from "../core/validation";
 import * as userService from "../service/user.service";
 import { ListResponse } from "../types/common.types";
-import { UserSigninInput } from "../types/user.types";
+import { UserSignupInput } from "../types/user.types";
 async function getAllUsers(_: Request, res: Response<ListResponse<User>>, next: NextFunction) {
   try {
     const users = await userService.getAllUsers();
@@ -17,9 +18,11 @@ async function getAllUsers(_: Request, res: Response<ListResponse<User>>, next: 
 }
 getAllUsers.validationSchema = null;
 
-async function createUser(req: Request<{}, {}, UserSigninInput>, res: Response, next: NextFunction) {
+async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response, next: NextFunction) {
   try {
     const user = await userService.createUser(req.body);
+    req.userId = user.id;
+    await createDevice(req);
     res.send(user);
   } catch (error) {
     next(error);
@@ -33,6 +36,7 @@ export function installUserRoutes(parentRouter: Router) {
   router.get(
     "/",
     requireAuthentication,
+    collectDeviceInfo,
     requirePermission("userservice:list:any:user"),
     validate(getAllUsers.validationSchema), 
     getAllUsers,

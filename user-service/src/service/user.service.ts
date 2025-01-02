@@ -5,7 +5,7 @@ import { getLogger } from "../core/logging";
 import { hashPassword, verifyPassword } from "../core/password";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
-import { UserLoginInput, UserSigninInput } from "../types/user.types";
+import { UserLoginInput, UserSignupInput } from "../types/user.types";
 import * as tokenService from "./token.service";
 
 export async function getAllUsers(): Promise<User[]> {
@@ -14,24 +14,24 @@ export async function getAllUsers(): Promise<User[]> {
 }
 
 // TODO: extract user account creation to its own service
-export async function createUser(userSigninInput: UserSigninInput): Promise<User> {
-  let user = await prisma.user.findUnique({ where: { email: userSigninInput.email } });
+export async function createUser(userSignupInput: UserSignupInput): Promise<User> {
+  let user = await prisma.user.findUnique({ where: { email: userSignupInput.email } });
 
   if (!user) {
-    user = await prisma.user.create({data: { email: userSigninInput.email }});
+    user = await prisma.user.create({data: { email: userSignupInput.email }});
   }
 
-  const passwordHash = await hashPassword(userSigninInput.password);
+  const passwordHash = await hashPassword(userSignupInput.password);
   await prisma.userAccount.create({
     data: { 
-      userId: user.id, appId: userSigninInput.appId, username: userSigninInput.username, passwordHash, 
+      userId: user.id, appId: userSignupInput.appId, username: userSignupInput.username, passwordHash, 
     },
   });
 
   return user;
 }
 
-export const login = async (userLoginInput: UserLoginInput): Promise<string> => {
+export const login = async (userLoginInput: UserLoginInput, deviceId?: string) => {
   const user = await prisma.user.findUnique({ where: { email: userLoginInput.email } });
 
   if (!user) {
@@ -51,8 +51,11 @@ export const login = async (userLoginInput: UserLoginInput): Promise<string> => 
   if (!passwordValid) {
     throw ServiceError.unauthorized("The given email and password do not match.");
   }
+  
+  const token = await tokenService.createToken(
+    user.id, { type: "session", appId: userLoginInput.appId, deviceId: deviceId },
+  );
 
-  const token = await tokenService.createToken(user.id, { type: "session", appId: userLoginInput.appId });
   return token.token;
 };
 

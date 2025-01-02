@@ -1,11 +1,12 @@
 import { Application } from "@prisma/client";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
+import { CreateApplicationInput, UpdateApplicationInput } from "../types/application.types";
 import handleDBError from "./_handleDBError";
 
-export async function createApplication(name: string): Promise<Application> {
+export async function createApplication(createAppInput: CreateApplicationInput): Promise<Application> {
   try{
-    return await prisma.application.create({ data: { name } });
+    return await prisma.application.create({ data: { name: createAppInput.name } });
   }catch(error){
     handleDBError(error);
   }
@@ -26,9 +27,9 @@ export async function getApplicationById(id: string): Promise<Application | null
   return application;
 }
 
-export async function updateApplication(id: string, name: string): Promise<Application> {
+export async function updateApplication(id: string, updateAppInput: UpdateApplicationInput): Promise<Application> {
   try{
-    const application = await prisma.application.update({ where: { id }, data: { name } });
+    const application = await prisma.application.update({ where: { id }, data: { name: updateAppInput.name } });
     return application;
   } catch(error){
     handleDBError(error);

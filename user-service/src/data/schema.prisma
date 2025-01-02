@@ -96,12 +96,28 @@ model Token {
 }
 
 model Device {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId
-
-  deviceType String
-  deviceInfo String?
-  ipAddress  String
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  userAgent       String
+  deviceType      String?
+  ipAddress       String?
+  browser         String?
+  browserVersion  String?
+  os              String?
+  osVersion       String?
+  deviceVendor    String?
+  deviceModel     String?
+  engine          String?
+  engineVersion   String?
+  cpuArchitecture String?
+  city            String?
+  country         String?
+  region          String?
+  language        String?
+  referer         String?
+  isSecure        Boolean?
+  timestamp       DateTime @default(now())
+  deviceInfo      String?
 
   user   User    @relation("UserDevices", fields: [userId], references: [id])
   ips    Ip[]    @relation("DeviceIps")
