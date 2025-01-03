@@ -5,7 +5,7 @@ import { getLogger } from "../core/logging";
 import { hashPassword, verifyPassword } from "../core/password";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
-import { UserLoginInput, UserSignupInput } from "../types/user.types";
+import { GetUserByIdResponse, UserLoginInput, UserSignupInput } from "../types/user.types";
 import * as tokenService from "./token.service";
 
 export async function getAllUsers(): Promise<User[]> {
@@ -131,8 +131,9 @@ export async function getUserRolesAndPermissions(id: string) {
 }
 
 // TODO: add verification for tokens based on passed token in query params
-export async function verifyEmail (token: string): Promise<Token> {
+export async function verifyEmail(token: string): Promise<Token> {
   try {
+    
     const { sub, jwtid } = await verifyJWT(token);
 
     const dbToken = await prisma.token.findUnique({ where: { id: jwtid } });
@@ -159,3 +160,90 @@ export async function verifyEmail (token: string): Promise<Token> {
     }
   }
 };
+
+export async function getUserById(id: string, requestingUserId: string): Promise<GetUserByIdResponse> {
+  id = id === "me" ? requestingUserId : id;
+
+  if (id !== requestingUserId && ! await checkPermission("userservice:read:any:user", requestingUserId)) {
+    throw ServiceError.notFound("User not found"); // Do not leak user information
+  }
+
+  const { roles, permissions } = await getUserRolesAndPermissions(id);
+
+  const user = await prisma.user.findUnique({ 
+    where: { id }, 
+    include: { 
+      accounts: { 
+        select: { 
+          id: true, 
+          appId: true,
+          username: true,
+          passwordHash: true,
+          createdAt: true,
+          status: true },
+      }, 
+      devices: { 
+        select: {
+          id: true,
+          userAgent: true,
+          deviceType: true,
+          os: true,
+          osVersion: true,
+          browser: true,
+          browserVersion: true,
+          ips: { select: { ipAddress: true } },
+        }, 
+      }, 
+    }, 
+  });
+
+  if (!user) {
+    throw ServiceError.notFound("User not found");
+  }
+
+  return { 
+    id: user.id,
+    email: user.email,
+    profile: user.profile,
+    accounts: user.accounts,
+    devices: user.devices.map((device) => ({
+      ...device,
+      ips: device.ips.map((ip) => ip.ipAddress),
+    })),
+    roles,
+    permissions,
+  } as GetUserByIdResponse;
+}
+
+export async function getUserProfile(id: string, requestingUserId: string) {
+  id = id === "me" ? requestingUserId : id;
+
+  if (id !== requestingUserId && ! await checkPermission("userservice:read:any:profile", requestingUserId)) {
+    throw ServiceError.notFound("User not found"); // Do not leak user information
+  }
+
+  const user = await prisma.user.findUnique({ where: { id } });
+
+  if (!user) {
+    throw ServiceError.notFound("User not found");
+  }
+
+  return user.profile;
+}
+
+export async function updateUserProfile(id: string, profile: any, requestingUserId: string): Promise<User> {
+  id = id === "me" ? requestingUserId : id;
+
+  if (id !== requestingUserId && ! await checkPermission("userservice:update:any:profile", requestingUserId)) {
+    throw ServiceError.notFound("User not found"); // Do not leak user information
+  }
+
+  const user = await prisma.user.update({ where: { id }, data: { profile } });
+
+  return user;
+}
+
+export function updateUserById(id: string, isVerified: boolean) {
+  return prisma.user.update({ where: { id }, data: { isVerified } });
+
+}

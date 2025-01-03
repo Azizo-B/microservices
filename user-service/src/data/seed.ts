@@ -21,6 +21,7 @@ async function main() {
   // Create application
   const application = await prisma.application.create({
     data: {
+      id: "6776f66b36f367b1e0f02bd3",
       name: "Rijexamenmeldingen",
     },
   });

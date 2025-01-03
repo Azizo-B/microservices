@@ -4,19 +4,10 @@ import { Router } from "express";
 import Joi from "joi";
 import { authDelay, requireAuthentication, requirePermission } from "../core/auth";
 import { collectDeviceInfo, createDevice } from "../core/collectDeviceInfo";
-import validate from "../core/validation";
+import validate, { objectIdValidation } from "../core/validation";
 import * as userService from "../service/user.service";
-import { ListResponse } from "../types/common.types";
-import { UserSignupInput } from "../types/user.types";
-async function getAllUsers(_: Request, res: Response<ListResponse<User>>, next: NextFunction) {
-  try {
-    const users = await userService.getAllUsers();
-    res.send({items: users});
-  } catch (error) {
-    next(error);
-  }
-}
-getAllUsers.validationSchema = null;
+import { EntityId, ListResponse } from "../types/common.types";
+import { GetUserByIdResponse, UserSignupInput } from "../types/user.types";
 
 async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response, next: NextFunction) {
   try {
@@ -30,9 +21,82 @@ async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response, 
 }
 createUser.validationScheme = { body: { email: Joi.string().email().lowercase() } };
 
+async function verifyEmail(req: Request<{}, {}, {token:string}>, res: Response, next: NextFunction) {
+  try {
+    const token = await userService.verifyEmail(req.body.token);
+    req.userId = token.userId;
+    await createDevice(req);
+    res.send();
+  } catch (error) {
+    next(error);
+  }
+}
+verifyEmail.validationScheme = { body: { token: Joi.string() } };
+
+async function getAllUsers(_: Request, res: Response<ListResponse<User>>, next: NextFunction) {
+  try {
+    const users = await userService.getAllUsers();
+    res.send({items: users});
+  } catch (error) {
+    next(error);
+  }
+}
+getAllUsers.validationSchema = null;
+
+async function getUserById(req: Request<EntityId>, res: Response<GetUserByIdResponse>, next: NextFunction) {
+  try {
+    const user = await userService.getUserById(req.params.id, req.userId);
+    res.send(user);
+  } catch (error) {
+    next(error);
+  }
+}
+getUserById.validationSchema = { 
+  params: { 
+    id: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")), 
+  }, 
+};
+
+async function updateUserById(req: Request<EntityId, {}, { isVerified: boolean }>, res: Response, next: NextFunction) {
+  try {
+    const updatedUser = await userService.updateUserById(req.params.id, req.body.isVerified);
+    res.send(updatedUser);
+  } catch (error) {
+    next(error);
+  }
+}
+updateUserById.validationSchema = { 
+  params: { id: objectIdValidation }, 
+  body: { isVerified: Joi.boolean().required() },
+};
+
+async function getUserProfile(req: Request<EntityId>, res: Response, next: NextFunction) {
+  try {
+    const userProfile = await userService.getUserProfile(req.params.id, req.userId);
+    res.send(userProfile);
+  } catch (error) {
+    next(error);
+  }
+}
+getUserProfile.validationSchema = { params: { id: objectIdValidation } };
+
+async function updateUserProfile(req: Request<EntityId, {}, any>, res: Response, next: NextFunction) {
+  try {
+    const updatedProfile = await userService.updateUserProfile(req.params.id, req.body, req.userId);
+    res.send(updatedProfile);
+  } catch (error) {
+    next(error);
+  }
+}
+updateUserProfile.validationSchema = { 
+  params: { id: objectIdValidation }, 
+  body: Joi.optional(),
+};
+
 export function installUserRoutes(parentRouter: Router) {
   const router = Router();
-
+  
+  router.post("/", validate(createUser.validationScheme), authDelay, createUser);
   router.get(
     "/",
     requireAuthentication,
@@ -41,7 +105,42 @@ export function installUserRoutes(parentRouter: Router) {
     validate(getAllUsers.validationSchema), 
     getAllUsers,
   );
-  router.post("/", validate(createUser.validationScheme), authDelay, createUser);
+  
+  router.get(
+    "/:id",
+    requireAuthentication,
+    collectDeviceInfo,
+    validate(getUserById.validationSchema), 
+    getUserById,
+  );
+  
+  router.patch(
+    "/:id",
+    requireAuthentication,
+    collectDeviceInfo,
+    requirePermission("userservice:update:any:user"),
+    collectDeviceInfo,
+    validate(updateUserById.validationSchema),
+    updateUserById,
+  );
+
+  router.get(
+    "/:id/profile",
+    requireAuthentication,
+    collectDeviceInfo,
+    validate(getUserProfile.validationSchema), 
+    getUserProfile,
+  );
+  
+  router.patch(
+    "/:id/profile",
+    requireAuthentication,
+    collectDeviceInfo,
+    validate(updateUserProfile.validationSchema), 
+    updateUserProfile,
+  );
+
+  router.post("/verify-email", validate(verifyEmail.validationScheme), verifyEmail);
 
   parentRouter.use("/users", router);
 };
