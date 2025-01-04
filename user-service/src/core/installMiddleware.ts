@@ -38,8 +38,8 @@ export function installMiddlewares(app: Application) {
 
     const getStatusEmoji = (status: number) => {
       if (status >= 500) return "💀";
-      if (status >= 400) return "❌";
-      if (status >= 300) return "🔀";
+      if (status >= 400) return "⛔";
+      if (status >= 300) return "🔁";
       if (status >= 200) return "✅";
       return "🔄";
     };

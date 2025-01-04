@@ -5,4 +5,3 @@ export type EntityId = {
 export interface ListResponse<T> {
   items: T[];
 }
-

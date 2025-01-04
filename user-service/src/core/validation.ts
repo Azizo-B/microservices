@@ -35,7 +35,7 @@ const cleanupJoiError = (error: Joi.ValidationError) => {
 
 const validate = (scheme: RequestValidationSchemeInput | null) => {
   const parsedSchema: RequestValidationScheme = {
-    body: Joi.object(scheme?.body || {}),
+    body: Joi.isSchema(scheme?.body) ? scheme.body : Joi.object(scheme?.body || {}),
     params: Joi.object(scheme?.params || {}),
     query: Joi.object(scheme?.query || {}),
   };

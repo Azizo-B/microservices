@@ -15,9 +15,9 @@ datasource db {
 model User {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  email       String  @unique(map: "idx_user_email_unique")
-  is_verified Boolean @default(false)
-  profile     Json    @default("{}")
+  email      String  @unique(map: "idx_user_email_unique")
+  isVerified Boolean @default(false)
+  profile    Json    @default("{}")
 
   roles    UserRole[]    @relation("UserRoles")
   accounts UserAccount[] @relation("UserAccounts")
@@ -67,13 +67,15 @@ model UserAccount {
   userId String @db.ObjectId
   appId  String @db.ObjectId
 
-  username   String
-  password   String
-  status     String
-  created_at DateTime @default(now())
+  username     String
+  passwordHash String
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
 
   user        User        @relation("UserAccounts", fields: [userId], references: [id])
   application Application @relation("ApplicationUsers", fields: [appId], references: [id])
+
+  @@unique([userId, appId], name: "idx_unique_user_app_account")
 }
 
 model Token {
@@ -82,11 +84,11 @@ model Token {
   appId    String? @db.ObjectId
   deviceId String? @db.ObjectId
 
-  type       String
-  token      String
-  expires_at DateTime
-  created_at DateTime  @default(now())
-  revoked_at DateTime?
+  type      String
+  token     String
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
 
   user        User         @relation("UserTokens", fields: [userId], references: [id])
   device      Device?      @relation("DeviceTokens", fields: [deviceId], references: [id])
@@ -94,12 +96,28 @@ model Token {
 }
 
 model Device {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId
-
-  device_type String
-  device_info String?
-  ip_address  String
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  userAgent       String
+  deviceType      String?
+  ipAddress       String?
+  browser         String?
+  browserVersion  String?
+  os              String?
+  osVersion       String?
+  deviceVendor    String?
+  deviceModel     String?
+  engine          String?
+  engineVersion   String?
+  cpuArchitecture String?
+  city            String?
+  country         String?
+  region          String?
+  language        String?
+  referer         String?
+  isSecure        Boolean?
+  timestamp       DateTime @default(now())
+  deviceInfo      String?
 
   user   User    @relation("UserDevices", fields: [userId], references: [id])
   ips    Ip[]    @relation("DeviceIps")
@@ -110,7 +128,7 @@ model Ip {
   id       String @id @default(auto()) @map("_id") @db.ObjectId
   deviceId String @db.ObjectId
 
-  ip_address String
+  ipAddress String
 
   device Device @relation("DeviceIps", fields: [deviceId], references: [id])
 }
