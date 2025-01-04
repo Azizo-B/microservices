@@ -8,5 +8,6 @@ export interface CreateTokenInput {
 
 export interface TokenWithStatus extends Token {
   isValid: boolean;
+  detail: string | null;
 }
 

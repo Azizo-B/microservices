@@ -388,6 +388,106 @@
  *         - appId
  *         - email
  *         - password
+ *     CreateRoleInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The name of the role.
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           description: A description of the role (optional).
+ *       required:
+ *         - name
+ *     UpdateRoleInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The name of the role.
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           description: A description of the role (optional).
+ *     CreatePermissionInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The name of the permission.
+ *           example: "view:dashboard"
+ *         description:
+ *           type: string
+ *           description: A description of the permission.
+ *           example: "Permission to view the dashboard."
+ *           required:
+ *           - name
+ *     UpdatePermissionInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The name of the permission.
+ *           example: "edit:dashboard"
+ *         description:
+ *           type: string
+ *           description: A description of the permission.
+ *           example: "Permission to edit the dashboard."
+ *       required:
+ *         - name
+ *     Permission:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: The unique identifier of the permission.
+ *           example: "60c72b2f9b1e8f1f4e0d1e9d"
+ *         name:
+ *           type: string
+ *           description: The name of the permission.
+ *           example: "view:dashboard"
+ *         description:
+ *           type: string
+ *           description: A description of the permission.
+ *           example: "Permission to view the dashboard."
+ *       required:
+ *         - id
+ *         - name
+ *     Role:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: The unique identifier of the role.
+ *           example: "60c72b2f9b1e8f1f4e0d1e9d"
+ *         name:
+ *           type: string
+ *           description: The name of the role.
+ *           example: "admin"
+ *         description:
+ *           type: string
+ *           description: A description of the role.
+ *           example: "Administrator role with full access."
+ *       required:
+ *         - id
+ *         - name
+ *     RoleWithPermissions:
+ *       allOf:
+ *         - $ref: '#/components/schemas/Role'
+ *         - type: object
+ *           properties:
+ *             permissions:
+ *               type: array
+ *               items:
+ *                 type: string
+ *               description: A list of permissions assigned to the role.
+ *               example:
+ *                 - "view:dashboard"
+ *                 - "edit:settings"
+ *                 - "delete:user"
+ *           required:
+ *             - permissions
  *   responses:
  *     BadRequest:
  *       description: Bad request
@@ -420,6 +520,24 @@
  *               message:
  *                 type: string
  *                 example: "Authentication required"
+ *               details:
+ *                 type: string
+ *               stack:
+ *                 type: string
+ *                 example: "Error stack trace"
+ *     Forbidden:
+ *       description: Forbidden
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               code:
+ *                 type: string
+ *                 example: "Forbidden"
+ *               message:
+ *                 type: string
+ *                 example: "Admin role required"
  *               details:
  *                 type: string
  *               stack:

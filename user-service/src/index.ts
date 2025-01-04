@@ -62,3 +62,10 @@ async function main() {
 }
 
 main();
+
+// TODO: useraccount creation /useraccount not /users
+// TODO: useraccount deletion deletes account
+// TODO: what happens in other services when an user account gets deleted?
+// TODO: send mail upon account creation
+// TODO: finetune prisma schema by adding unique idx
+// TODO: write tests 

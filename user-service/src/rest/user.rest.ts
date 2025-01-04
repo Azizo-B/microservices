@@ -94,6 +94,30 @@ updateUserProfile.validationSchema = {
   body: Joi.optional(),
 };
 
+async function linkRoleToUser(req: Request<{userId: string, roleId: string}>, res: Response, next: NextFunction) {
+  try {
+    await userService.linkRoleToUser(req.params.userId, req.params.roleId);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
+linkRoleToUser.validationScheme = {
+  params: { userId: objectIdValidation, roleId: objectIdValidation },
+};
+
+async function unlinkRoleFromUser(req: Request<{userId: string, roleId: string}>, res: Response, next: NextFunction) {
+  try {
+    await userService.unlinkRoleFromUser(req.params.userId, req.params.roleId);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
+unlinkRoleFromUser.validationScheme = {
+  params: { userId: objectIdValidation , roleId: objectIdValidation },
+};
+
 export function installUserRoutes(parentRouter: Router) {
   const router = Router();
   
@@ -142,6 +166,24 @@ export function installUserRoutes(parentRouter: Router) {
   );
 
   router.post("/verify-email", validate(verifyEmail.validationScheme), verifyEmail);
+
+  router.post(
+    "/:userId/roles:roleId",
+    requireAuthentication,
+    collectDeviceInfo,
+    requirePermission("userservice:assign:any:role"),
+    validate(linkRoleToUser.validationScheme),
+    linkRoleToUser,
+  );
+  
+  router.delete(
+    "/:userId/roles:roleId",
+    requireAuthentication,
+    collectDeviceInfo,
+    requirePermission("userservice:remove:any:role"),
+    validate(unlinkRoleFromUser.validationScheme),
+    unlinkRoleFromUser,
+  );
 
   parentRouter.use("/users", router);
 };

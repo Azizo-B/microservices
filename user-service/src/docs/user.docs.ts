@@ -228,3 +228,75 @@
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
+
+/**
+ * @swagger
+ * /api/users/{userId}/roles/{roleId}:
+ *   post:
+ *     summary: Links a role to a user
+ *     security:
+ *       - bearerAuth: []
+ *     description: Assigns a role to the specified user, linking them to the role.
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           $ref: '#/components/schemas/EntityId'
+ *         description: The ID of the user to link the role to.
+ *       - in: path
+ *         name: roleId
+ *         required: true
+ *         schema:
+ *           $ref: '#/components/schemas/EntityId'
+ *         description: The ID of the role to link to the user.
+ *     responses:
+ *       200:
+ *         description: Role successfully linked to the user
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ * @swagger
+ * /api/users/{userId}/roles/{roleId}:
+ *   delete:
+ *     summary: Unlinks a role from a user
+ *     security:
+ *       - bearerAuth: []
+ *     description: Removes the specified role from the user, unlinking them from the role.
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           $ref: '#/components/schemas/EntityId'
+ *         description: The ID of the user to unlink the role from.
+ *       - in: path
+ *         name: roleId
+ *         required: true
+ *         schema:
+ *           $ref: '#/components/schemas/EntityId'
+ *         description: The ID of the role to remove from the user.
+ *     responses:
+ *       204:
+ *         description: Role successfully unlinked from the user
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */

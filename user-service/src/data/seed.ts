@@ -61,7 +61,22 @@ async function main() {
     "userservice:create:any:application",
     "userservice:update:any:application",
     "userservice:delete:any:application",
+    "userservice:create:any:permission",
+    "userservice:update:any:permission",
+    "userservice:delete:any:permission",
+    "userservice:create:any:role",
+    "userservice:update:any:role",
+    "userservice:delete:any:role",
+    "userservice:assign:any:permission",
+    "userservice:remove:any:permission",
     "userservice:list:any:user",
+    "userservice:update:any:user",
+    "userservice:read:any:profile",
+    "userservice:update:any:profile",
+    "userservice:assign:any:role",
+    "userservice:remove:any:role",
+    "userservice:list:any:device",
+    "userservice:read:any:device",
   ];
 
   // Create admin role with all permissions

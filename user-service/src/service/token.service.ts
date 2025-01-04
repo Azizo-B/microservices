@@ -54,7 +54,6 @@ export async function getAllTokens(userId: string): Promise<Token[]> {
   return tokens;
 }
 
-// TODO: add why token is invalid
 // TODO: remove appid from response
 export async function getTokenById(userId: string, id: string): Promise<TokenWithStatus> {
   const token = await prisma.token.findUnique(
@@ -70,17 +69,20 @@ export async function getTokenById(userId: string, id: string): Promise<TokenWit
   if(token.userId !== userId && !hasPermission){
     throw ServiceError.notFound("Token not found."); // dont give away that token exists
   }
-
+  
   let isValid = true;
+  let detail = null;
 
   if (token.expiresAt < new Date()) {
     isValid = false;
+    detail = "expired";
   }
   if (token.revokedAt) {
     isValid = false;
+    detail = "revoked";
   }
 
-  return {...token, isValid};
+  return {...token, isValid, detail};
 }
 
 export async function deleteToken(userId: string, tokenId: string): Promise<void> {

@@ -1,6 +1,7 @@
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
 import * as userService from "../service/user.service";
+import ServiceError from "./serviceError";
 
 const AUTH_MAX_DELAY = config.get<number>("auth.maxDelay");
 
@@ -17,7 +18,11 @@ export const requireAuthentication = async (req: Request, _: Response, next: Nex
 export const requirePermission = (permission: string) => {
   return async (req: Request, _: Response, next: NextFunction) => {
     try {
-      await userService.checkPermission(permission, req.userId);
+      if (! await userService.checkPermission(permission, req.userId)){
+        throw ServiceError.forbidden(
+          "You do not have the required permissions to access this part of the application. required:" + permission,
+        );
+      };
       next();
     } catch (error) {
       next(error);

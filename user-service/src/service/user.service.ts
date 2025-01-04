@@ -6,6 +6,7 @@ import { hashPassword, verifyPassword } from "../core/password";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
 import { GetUserByIdResponse, UserLoginInput, UserSignupInput } from "../types/user.types";
+import handleDBError from "./_handleDBError";
 import * as tokenService from "./token.service";
 
 export async function getAllUsers(): Promise<User[]> {
@@ -36,6 +37,10 @@ export const login = async (userLoginInput: UserLoginInput, deviceId?: string) =
 
   if (!user) {
     throw ServiceError.unauthorized("The given email and password do not match.");
+  }
+
+  if (!user.isVerified) {
+    throw ServiceError.unauthorized("Your email address is not verified. Please verify it before logging in.");
   }
 
   const useraccount = await prisma.userAccount.findUnique(
@@ -130,7 +135,6 @@ export async function getUserRolesAndPermissions(id: string) {
   return {roles, permissions};
 }
 
-// TODO: add verification for tokens based on passed token in query params
 export async function verifyEmail(token: string): Promise<Token> {
   try {
     
@@ -246,4 +250,49 @@ export async function updateUserProfile(id: string, profile: any, requestingUser
 export function updateUserById(id: string, isVerified: boolean) {
   return prisma.user.update({ where: { id }, data: { isVerified } });
 
+}
+
+export async function linkRoleToUser(userId: string, roleId: string) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const role = await prisma.role.findUnique({ where: { id: roleId } });
+    if (!role) {
+      throw new Error("Role not found");
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        roles: {
+          connect: { id: roleId },
+        },
+      },
+    });
+  } catch (error) {
+    handleDBError(error);
+  }
+}
+
+export async function unlinkRoleFromUser(userId: string, roleId: string) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        roles: {
+          disconnect: { id: roleId },
+        },
+      },
+    });
+  } catch (error) {
+    handleDBError(error);
+  }
 }

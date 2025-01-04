@@ -1,0 +1,90 @@
+[User]
+*id
+email
+isVerified
+profile
+
+[Token]
+*id
+userId
+appId
+deviceId
+type
+token
+expiresAt
+createdAt
+revokedAt 
+
+[Device]
+*id
+userId
+userAgent
+deviceType
+ipAddress
+browser
+browserVersion
+os
+osVersion
+deviceVendor
+deviceModel
+engine
+engineVersion
+cpuArchitecture
+city
+country
+region
+language
+referer
+isSecure
+timestamp
+deviceInfo
+
+[Ip]
+*id
+deviceId
+ipAddress
+
+[UserAccount]
+*id
+userId
+appId
+username
+passwordHash
+status
+createdAt
+
+[Application]
+*id
+name
+
+[Role]
+*id
+name
+description
+
+[Permission]
+*id
+name
+description
+
+[UserRole]
+*id
+userId
+roleId
+
+[RolePermission]
+*id
+roleId
+permissionId
+
+Token *--? Device
+Token *--1 Application
+User +--* Device
+Ip *--* Device
+User 1--* UserAccount
+User 1--* Token
+User 1--* UserRole
+UserRole *--1 Role
+RolePermission *--1 Role
+RolePermission *--1 Permission
+UserAccount *--1 Application

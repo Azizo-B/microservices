@@ -51,12 +51,14 @@ model RolePermission {
 
   role       Role       @relation("RolePermissions", fields: [roleId], references: [id])
   permission Permission @relation("PermissionToRolePermission", fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId], name: "idx_unique_role_permission")
 }
 
 model Permission {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name        String
+  name        String  @unique(map: "idx_unique_permission_name")
   description String?
 
   rolePermissions RolePermission[] @relation("PermissionToRolePermission")

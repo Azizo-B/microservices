@@ -89,7 +89,6 @@ deleteToken.validationSchema = {
 export function installTokenRoutes(parentRouter: Router) {
   const router = Router();
 
-  // TODO: check if user is verified
   router.post("/sessions", validate(login.validationSchema), authDelay, login);
   router.post("/", requireAuthentication, collectDeviceInfo, validate(createToken.validationSchema), createToken);
   router.get("/", requireAuthentication, collectDeviceInfo, validate(getAllTokens.validationSchema), getAllTokens);
