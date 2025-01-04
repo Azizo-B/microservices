@@ -102,3 +102,9 @@ export async function deleteToken(userId: string, tokenId: string): Promise<void
   }
 }
 
+export function linkTokenToDevice(tokenId: string, deviceId: string) {
+  return prisma.token.update({
+    where: { id: tokenId },
+    data: { deviceId },
+  });
+}

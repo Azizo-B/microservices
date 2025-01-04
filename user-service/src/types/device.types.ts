@@ -1,3 +1,5 @@
+import { Device } from "@prisma/client";
+
 export interface BasicDeviceInfo{
   id: string;
   userAgent: string;
@@ -7,4 +9,8 @@ export interface BasicDeviceInfo{
   browser: string;
   browserVersion: string;
   ips: string[];
+}
+
+export interface DeviceAndIps extends Device {
+  ips: string[]
 }

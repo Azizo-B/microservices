@@ -96,7 +96,7 @@
  *     summary: Retrieves a token by ID
  *     security:
  *       - bearerAuth: []
- *     description: Fetches a token associated with the provided user ID and token ID.
+ *     description: Fetches a token associated with the provided token ID and the authenticated user.
  *     tags:
  *       - Token
  *     parameters:

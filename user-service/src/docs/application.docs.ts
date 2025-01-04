@@ -92,7 +92,7 @@
 /**
  * @swagger
  * /api/applications/{id}:
- *   put:
+ *   patch:
  *     summary: Updates an application
  *     security:
  *       - bearerAuth: []

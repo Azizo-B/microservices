@@ -158,6 +158,111 @@
  *         - appId
  *         - email
  *         - password
+ *     Device:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique identifier for the device
+ *           example: "60c72b2f9b1d8e001f8c56a7"
+ *         userId:
+ *           type: string
+ *           description: The ID of the user associated with the device
+ *           example: "60c72b2f9b1d8e001f8c56a6"
+ *         userAgent:
+ *           type: string
+ *           description: The user agent string for the device
+ *           example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
+ *         deviceType:
+ *           type: string
+ *           description: The type of device (e.g., mobile, desktop)
+ *           example: "desktop"
+ *         ipAddress:
+ *           type: string
+ *           description: The IP address of the device
+ *           example: "192.168.1.1"
+ *         browser:
+ *           type: string
+ *           description: The browser used on the device
+ *           example: "Chrome"
+ *         browserVersion:
+ *           type: string
+ *           description: The version of the browser
+ *           example: "91.0.4472.124"
+ *         os:
+ *           type: string
+ *           description: The operating system of the device
+ *           example: "Windows 10"
+ *         osVersion:
+ *           type: string
+ *           description: The version of the operating system
+ *           example: "10.0.19042"
+ *         deviceVendor:
+ *           type: string
+ *           description: The vendor of the device
+ *           example: "Dell"
+ *         deviceModel:
+ *           type: string
+ *           description: The model of the device
+ *           example: "XPS 13"
+ *         engine:
+ *           type: string
+ *           description: The rendering engine of the browser
+ *           example: "Blink"
+ *         engineVersion:
+ *           type: string
+ *           description: The version of the rendering engine
+ *           example: "91.0.4472.124"
+ *         cpuArchitecture:
+ *           type: string
+ *           description: The CPU architecture of the device
+ *           example: "x64"
+ *         city:
+ *           type: string
+ *           description: The city where the device is located
+ *           example: "New York"
+ *         country:
+ *           type: string
+ *           description: The country where the device is located
+ *           example: "USA"
+ *         region:
+ *           type: string
+ *           description: The region where the device is located
+ *           example: "NY"
+ *         language:
+ *           type: string
+ *           description: The language set on the device
+ *           example: "en-US"
+ *         referer:
+ *           type: string
+ *           description: The referer URL
+ *           example: "https://example.com"
+ *         isSecure:
+ *           type: boolean
+ *           description: Whether the connection is secure (HTTPS)
+ *           example: true
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *           description: The timestamp when the device was registered
+ *           example: "2025-01-04T12:34:56Z"
+ *         deviceInfo:
+ *           type: string
+ *           description: Additional device information
+ *           example: "Dell XPS 13, 16GB RAM, 512GB SSD"
+ *     
+ *     DeviceAndIps:
+ *       allOf:
+ *         - $ref: '#/components/schemas/Device'
+ *         - type: object
+ *           properties:
+ *             ips:
+ *               type: array
+ *               items:
+ *                 type: string
+ *               description: A list of IP addresses associated with the device
+ *               example: ["192.168.1.1", "192.168.1.2"]
+ * 
  *     BasicDeviceInfo:
  *       type: object
  *       properties:

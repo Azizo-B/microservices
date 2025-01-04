@@ -17,7 +17,7 @@ export async function getAllApplications(): Promise<Application[]> {
   return applications;
 }
 
-export async function getApplicationById(id: string): Promise<Application | null> {
+export async function getApplicationById(id: string): Promise<Application> {
   const application = await prisma.application.findUnique({ where: { id } });
 
   if (!application) {

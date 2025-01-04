@@ -34,7 +34,7 @@ async function getAllApplications(_: Request, res: Response<ListResponse<Applica
 }
 getAllApplications.validationScheme = null;
 
-async function getApplicationById(req: Request<EntityId>, res: Response<Application | null>, next: NextFunction) {
+async function getApplicationById(req: Request<EntityId>, res: Response<Application>, next: NextFunction) {
   try{
     const application = await applicationService.getApplicationById(req.params.id);
     res.send(application);
@@ -79,7 +79,7 @@ export function installApplicationRoutes(parentRouter: Router) {
   );
   router.get("/", validate(getAllApplications.validationScheme), getAllApplications);
   router.get("/:id", validate(getApplicationById.validationScheme), getApplicationById);
-  router.put(
+  router.patch(
     "/:id", 
     requireAuthentication, 
     requirePermission("userservice:update:any:application"), 
