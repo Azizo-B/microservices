@@ -168,7 +168,7 @@ export function installUserRoutes(parentRouter: Router) {
   router.post("/verify-email", validate(verifyEmail.validationScheme), verifyEmail);
 
   router.post(
-    "/:userId/roles:roleId",
+    "/:userId/roles/:roleId",
     requireAuthentication,
     collectDeviceInfo,
     requirePermission("userservice:assign:any:role"),
@@ -177,7 +177,7 @@ export function installUserRoutes(parentRouter: Router) {
   );
   
   router.delete(
-    "/:userId/roles:roleId",
+    "/:userId/roles/:roleId",
     requireAuthentication,
     collectDeviceInfo,
     requirePermission("userservice:remove:any:role"),

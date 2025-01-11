@@ -33,7 +33,7 @@
  *     summary: Verifies a user's email
  *     description: Verifies a user's email using the provided token.
  *     tags:
- *       - User
+ *       - User Authentication
  *     requestBody:
  *       required: true
  *       content:
@@ -168,7 +168,7 @@
  *       - bearerAuth: []
  *     description: Fetches the profile of a user by their ID.
  *     tags:
- *       - User
+ *       - User Profile
  *     parameters:
  *       - in: path
  *         name: id
@@ -202,7 +202,7 @@
  *       - bearerAuth: []
  *     description: Updates the profile of a user with the provided data.
  *     tags:
- *       - User
+ *       - User Profile
  *     parameters:
  *       - in: path
  *         name: id

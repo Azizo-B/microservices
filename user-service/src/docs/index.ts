@@ -1,7 +1,9 @@
 /**
  * @swagger
  * tags:
+ *   - name: User Authentication
  *   - name: User
+ *   - name: User Profile
  *   - name: Token
  *   - name: Application
  * components:

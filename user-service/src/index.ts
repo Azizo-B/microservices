@@ -69,3 +69,4 @@ main();
 // TODO: send mail upon account creation
 // TODO: finetune prisma schema by adding unique idx
 // TODO: write tests 
+// TODO: On event kafka bus

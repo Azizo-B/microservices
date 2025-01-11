@@ -8,7 +8,7 @@ import { createDevice } from "../service/device.service";
 import * as tokenService from "../service/token.service";
 import * as userService from "../service/user.service";
 import { EntityId, ListResponse } from "../types/common.types";
-import { CreateTokenInput, TokenWithStatus } from "../types/token.types";
+import { CreateTokenInput, TokenType, TokenWithStatus } from "../types/token.types";
 import { UserLoginInput } from "../types/user.types";
 
 // handles creation of verification and password reset tokens
@@ -25,17 +25,17 @@ export async function createToken(req: Request<{}, {}, CreateTokenInput>, res: R
 createToken.validationSchema = {
   body: {
     appId: objectIdValidation,
-    type: Joi.string().valid("verification", "password_reset"),
+    type: Joi.string().valid(TokenType.EMAIL_VERIFICATION, TokenType.PASSWORD_RESET),
   },
 };
 
-export async function login(req: Request<{}, {}, UserLoginInput>, res: Response<string>, next: NextFunction) {
+export async function login(req: Request<{}, {}, UserLoginInput>, res: Response<{token: string}>, next: NextFunction) {
   try {
     const token = await userService.login(req.body);
     req.userId = token.userId;
     const deviceId = await createDevice(req);
     tokenService.linkTokenToDevice(token.id, deviceId);
-    res.status(201).send(token.token);
+    res.status(201).send({token: token.token});
   } catch (error) {
     next(error);
   }

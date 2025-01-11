@@ -5,7 +5,7 @@
  *     summary: Logs in a user
  *     description: Authenticates a user and returns a token.
  *     tags:
- *       - Token
+ *       - User Authentication
  *     requestBody:
  *       required: true
  *       content:
@@ -18,8 +18,11 @@
  *         content:
  *           application/json:
  *             schema:
- *               type: string
- *               example: "token"
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: jwt token.
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       401:

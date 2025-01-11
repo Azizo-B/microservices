@@ -5,6 +5,7 @@ import { getLogger } from "../core/logging";
 import { hashPassword, verifyPassword } from "../core/password";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
+import { TokenType } from "../types/token.types";
 import { GetUserByIdResponse, UserLoginInput, UserSignupInput } from "../types/user.types";
 import handleDBError from "./_handleDBError";
 import * as tokenService from "./token.service";
@@ -58,7 +59,7 @@ export const login = async (userLoginInput: UserLoginInput, deviceId?: string) =
   }
   
   const token = await tokenService.createToken(
-    user.id, { type: "session", appId: userLoginInput.appId, deviceId: deviceId },
+    user.id, { type: TokenType.SESSION, appId: userLoginInput.appId, deviceId: deviceId },
   );
 
   return token;
@@ -249,7 +250,6 @@ export async function updateUserProfile(id: string, profile: any, requestingUser
 
 export function updateUserById(id: string, isVerified: boolean) {
   return prisma.user.update({ where: { id }, data: { isVerified } });
-
 }
 
 export async function linkRoleToUser(userId: string, roleId: string) {

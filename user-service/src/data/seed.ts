@@ -1,5 +1,6 @@
 import { prisma } from ".";
 import { hashPassword } from "../core/password";
+import { TokenType } from "../types/token.types";
 
 async function main() {
   if (process.env.NODE_ENV === "production") {
@@ -30,6 +31,7 @@ async function main() {
   const user = await prisma.user.create({
     data: {
       email: "admin@localhost.com",
+      isVerified: true,
     },
   });
 
@@ -39,7 +41,7 @@ async function main() {
       userId: user.id,
       token: "seeded-token",
       expiresAt: new Date(),
-      type: "session",
+      type: TokenType.SESSION,
       appId: application.id,
     },
   });

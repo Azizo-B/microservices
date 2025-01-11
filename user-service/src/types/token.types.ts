@@ -11,3 +11,9 @@ export interface TokenWithStatus extends Token {
   detail: string | null;
 }
 
+export enum TokenType {
+  SESSION = "session",
+  REFRESH = "refresh",
+  PASSWORD_RESET = "password_reset",
+  EMAIL_VERIFICATION = "email_verification",
+}
