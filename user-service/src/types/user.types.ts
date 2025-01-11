@@ -1,4 +1,4 @@
-import { UserAccount } from "@prisma/client";
+import { User } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { BasicDeviceInfo } from "./device.types";
 
@@ -21,6 +21,17 @@ export interface GetUserByIdResponse {
   profile: JsonValue;
   roles: string[];
   permissions: string[];
-  accounts: Omit<UserAccount, "userId">[];
   devices: BasicDeviceInfo[];
 }
+
+export enum AccountStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  BANNED = "banned",
+}
+export interface UserUpdateInput {
+  isVerified: boolean
+  status: AccountStatus
+}
+
+export interface PublicUser extends Exclude<User, "passwordHash"> {}

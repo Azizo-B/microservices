@@ -8,7 +8,7 @@ import validate, { objectIdValidation } from "../core/validation";
 import { createDevice } from "../service/device.service";
 import * as userService from "../service/user.service";
 import { EntityId, ListResponse } from "../types/common.types";
-import { GetUserByIdResponse, UserSignupInput } from "../types/user.types";
+import { AccountStatus, GetUserByIdResponse, UserSignupInput, UserUpdateInput } from "../types/user.types";
 
 async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response, next: NextFunction) {
   try {
@@ -20,8 +20,14 @@ async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response, 
     next(error);
   }
 }
-createUser.validationScheme = { body: { email: Joi.string().email().lowercase() } };
-
+createUser.validationSchema = { 
+  body: { 
+    appId: objectIdValidation, 
+    username: Joi.string(),
+    email: Joi.string().email().lowercase(), 
+    password: Joi.string(),
+  },
+};
 async function verifyEmail(req: Request<{}, {}, {token:string}>, res: Response, next: NextFunction) {
   try {
     const token = await userService.verifyEmail(req.body.token);
@@ -32,7 +38,7 @@ async function verifyEmail(req: Request<{}, {}, {token:string}>, res: Response, 
     next(error);
   }
 }
-verifyEmail.validationScheme = { body: { token: Joi.string() } };
+verifyEmail.validationSchema = { body: { token: Joi.string() } };
 
 async function getAllUsers(_: Request, res: Response<ListResponse<User>>, next: NextFunction) {
   try {
@@ -58,9 +64,11 @@ getUserById.validationSchema = {
   }, 
 };
 
-async function updateUserById(req: Request<EntityId, {}, { isVerified: boolean }>, res: Response, next: NextFunction) {
+async function updateUserById(
+  req: Request<EntityId, {}, UserUpdateInput>, res: Response, next: NextFunction,
+) {
   try {
-    const updatedUser = await userService.updateUserById(req.params.id, req.body.isVerified);
+    const updatedUser = await userService.updateUserById(req.params.id, req.body);
     res.send(updatedUser);
   } catch (error) {
     next(error);
@@ -68,7 +76,10 @@ async function updateUserById(req: Request<EntityId, {}, { isVerified: boolean }
 }
 updateUserById.validationSchema = { 
   params: { id: objectIdValidation }, 
-  body: { isVerified: Joi.boolean().required() },
+  body: { 
+    isVerified: Joi.boolean(), 
+    status: Joi.string().valid(AccountStatus.ACTIVE, AccountStatus.INACTIVE, AccountStatus.BANNED),
+  },
 };
 
 async function getUserProfile(req: Request<EntityId>, res: Response, next: NextFunction) {
@@ -102,7 +113,7 @@ async function linkRoleToUser(req: Request<{userId: string, roleId: string}>, re
     next(error);
   }
 }
-linkRoleToUser.validationScheme = {
+linkRoleToUser.validationSchema = {
   params: { userId: objectIdValidation, roleId: objectIdValidation },
 };
 
@@ -114,14 +125,14 @@ async function unlinkRoleFromUser(req: Request<{userId: string, roleId: string}>
     next(error);
   }
 }
-unlinkRoleFromUser.validationScheme = {
+unlinkRoleFromUser.validationSchema = {
   params: { userId: objectIdValidation , roleId: objectIdValidation },
 };
 
 export function installUserRoutes(parentRouter: Router) {
   const router = Router();
   
-  router.post("/", validate(createUser.validationScheme), authDelay, createUser);
+  router.post("/", validate(createUser.validationSchema), authDelay, createUser);
   router.get(
     "/",
     requireAuthentication,
@@ -165,14 +176,14 @@ export function installUserRoutes(parentRouter: Router) {
     updateUserProfile,
   );
 
-  router.post("/verify-email", validate(verifyEmail.validationScheme), verifyEmail);
+  router.post("/verify-email", validate(verifyEmail.validationSchema), verifyEmail);
 
   router.post(
     "/:userId/roles/:roleId",
     requireAuthentication,
     collectDeviceInfo,
     requirePermission("userservice:assign:any:role"),
-    validate(linkRoleToUser.validationScheme),
+    validate(linkRoleToUser.validationSchema),
     linkRoleToUser,
   );
   
@@ -181,7 +192,7 @@ export function installUserRoutes(parentRouter: Router) {
     requireAuthentication,
     collectDeviceInfo,
     requirePermission("userservice:remove:any:role"),
-    validate(unlinkRoleFromUser.validationScheme),
+    validate(unlinkRoleFromUser.validationSchema),
     unlinkRoleFromUser,
   );
 

@@ -17,7 +17,7 @@ async function getAllDevices(req: Request, res: Response<ListResponse<Device>>, 
   }
 
 }
-getAllDevices.validationScheme = null;
+getAllDevices.validationSchema = null;
 
 async function getDeviceById(req: Request<EntityId>, res: Response<DeviceAndIps>, next: NextFunction) {
   try{
@@ -28,13 +28,13 @@ async function getDeviceById(req: Request<EntityId>, res: Response<DeviceAndIps>
   }
 
 }
-getDeviceById.validationScheme = {params: {id: objectIdValidation}};
+getDeviceById.validationSchema = {params: {id: objectIdValidation}};
 
 export function installDeviceRoutes(parentRouter: Router) {
   const router = Router();
 
-  router.get("/", requireAuthentication,  collectDeviceInfo, validate(getAllDevices.validationScheme), getAllDevices);
-  router.get("/:id", requireAuthentication, collectDeviceInfo, validate(getDeviceById.validationScheme), getDeviceById);
+  router.get("/", requireAuthentication,  collectDeviceInfo, validate(getAllDevices.validationSchema), getAllDevices);
+  router.get("/:id", requireAuthentication, collectDeviceInfo, validate(getDeviceById.validationSchema), getDeviceById);
 
   parentRouter.use("/devices", router);
 };

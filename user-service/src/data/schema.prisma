@@ -13,16 +13,25 @@ datasource db {
 }
 
 model User {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  appId String @db.ObjectId
 
-  email      String  @unique(map: "idx_user_email_unique")
-  isVerified Boolean @default(false)
-  profile    Json    @default("{}")
+  username     String
+  email        String
+  passwordHash String
+  profile      Json   @default("{}")
 
-  roles    UserRole[]    @relation("UserRoles")
-  accounts UserAccount[] @relation("UserAccounts")
-  tokens   Token[]       @relation("UserTokens")
-  devices  Device[]      @relation("UserDevices")
+  status     String   @default("active")
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  roles       UserRole[]  @relation("UserRoles")
+  tokens      Token[]     @relation("UserTokens")
+  devices     Device[]    @relation("UserDevices")
+  application Application @relation("ApplicationUsers", fields: [appId], references: [id])
+
+  @@unique([email, appId], name: "idx_unique_user_email_app_account")
+  @@unique([id, appId], name: "idx_unique_user_app_account")
 }
 
 model UserRole {
@@ -62,22 +71,6 @@ model Permission {
   description String?
 
   rolePermissions RolePermission[] @relation("PermissionToRolePermission")
-}
-
-model UserAccount {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId
-  appId  String @db.ObjectId
-
-  username     String
-  passwordHash String
-  status       String   @default("active")
-  createdAt    DateTime @default(now())
-
-  user        User        @relation("UserAccounts", fields: [userId], references: [id])
-  application Application @relation("ApplicationUsers", fields: [appId], references: [id])
-
-  @@unique([userId, appId], name: "idx_unique_user_app_account")
 }
 
 model Token {
@@ -140,6 +133,6 @@ model Application {
 
   name String @unique(map: "idx_application_name_unique")
 
-  users  UserAccount[] @relation("ApplicationUsers")
-  tokens Token[]       @relation("ApplicationTokens")
+  users  User[]  @relation("ApplicationUsers")
+  tokens Token[] @relation("ApplicationTokens")
 }

@@ -6,8 +6,8 @@ import { requireAuthentication, requirePermission } from "../core/auth";
 import validate, { objectIdValidation } from "../core/validation";
 import * as applicationService from "../service/application.service";
 import {
-  CreateApplicationInput,
-  UpdateApplicationInput,
+    CreateApplicationInput,
+    UpdateApplicationInput,
 } from "../types/application.types";
 import { EntityId, ListResponse } from "../types/common.types";
 
@@ -21,7 +21,7 @@ async function createApplication(
     next(error);
   }
 }
-createApplication.validationScheme = {body: {name: Joi.string()}};
+createApplication.validationSchema = {body: {name: Joi.string()}};
 
 async function getAllApplications(_: Request, res: Response<ListResponse<Application>>, next: NextFunction) {
   try{
@@ -32,7 +32,7 @@ async function getAllApplications(_: Request, res: Response<ListResponse<Applica
   }
 
 }
-getAllApplications.validationScheme = null;
+getAllApplications.validationSchema = null;
 
 async function getApplicationById(req: Request<EntityId>, res: Response<Application>, next: NextFunction) {
   try{
@@ -43,7 +43,7 @@ async function getApplicationById(req: Request<EntityId>, res: Response<Applicat
   }
 
 }
-getApplicationById.validationScheme = {params: {id: objectIdValidation}};
+getApplicationById.validationSchema = {params: {id: objectIdValidation}};
 
 async function updateApplication(
   req: Request<EntityId, {}, UpdateApplicationInput>, res: Response<Application>, next: NextFunction,
@@ -55,7 +55,7 @@ async function updateApplication(
     next(error);
   }
 }
-updateApplication.validationScheme = {params: {id: objectIdValidation}, body: {name: Joi.string()}};
+updateApplication.validationSchema = {params: {id: objectIdValidation}, body: {name: Joi.string()}};
 
 async function deleteApplication(req: Request<EntityId>, res: Response<void>, next: NextFunction) {
   try{
@@ -65,7 +65,7 @@ async function deleteApplication(req: Request<EntityId>, res: Response<void>, ne
     next(error);
   }
 }
-deleteApplication.validationScheme = {params: {id: objectIdValidation}};
+deleteApplication.validationSchema = {params: {id: objectIdValidation}};
 
 export function installApplicationRoutes(parentRouter: Router) {
   const router = Router();
@@ -74,23 +74,23 @@ export function installApplicationRoutes(parentRouter: Router) {
     "/", 
     requireAuthentication, 
     requirePermission("userservice:create:any:application"), 
-    validate(createApplication.validationScheme), 
+    validate(createApplication.validationSchema), 
     createApplication,
   );
-  router.get("/", validate(getAllApplications.validationScheme), getAllApplications);
-  router.get("/:id", validate(getApplicationById.validationScheme), getApplicationById);
+  router.get("/", validate(getAllApplications.validationSchema), getAllApplications);
+  router.get("/:id", validate(getApplicationById.validationSchema), getApplicationById);
   router.patch(
     "/:id", 
     requireAuthentication, 
     requirePermission("userservice:update:any:application"), 
-    validate(updateApplication.validationScheme), 
+    validate(updateApplication.validationSchema), 
     updateApplication,
   );
   router.delete(
     "/:id", 
     requireAuthentication, 
     requirePermission("userservice:delete:any:application"), 
-    validate(deleteApplication.validationScheme), 
+    validate(deleteApplication.validationSchema), 
     deleteApplication,
   );
 

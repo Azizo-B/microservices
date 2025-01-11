@@ -146,6 +146,9 @@
  *               isVerified:
  *                 type: boolean
  *                 description: The verification status of the user
+ *               status:
+ *                 type: string
+ *                 description: account status
  *     responses:
  *       200:
  *         description: User updated successfully

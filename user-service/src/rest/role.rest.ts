@@ -8,8 +8,8 @@ import validate, { objectIdValidation } from "../core/validation";
 import * as roleService from "../service/role.service";
 import { EntityId, ListResponse } from "../types/common.types";
 import {
-  CreateRoleInput,
-  UpdateRoleInput,
+    CreateRoleInput,
+    UpdateRoleInput,
 } from "../types/role.types";
 
 async function createRole(
@@ -22,7 +22,7 @@ async function createRole(
     next(error);
   }
 }
-createRole.validationScheme = {body: {name: Joi.string().required(), description: Joi.string().optional()}};
+createRole.validationSchema = {body: {name: Joi.string().required(), description: Joi.string().optional()}};
 
 async function getAllRoles(_: Request, res: Response<ListResponse<Role>>, next: NextFunction) {
   try{
@@ -32,7 +32,7 @@ async function getAllRoles(_: Request, res: Response<ListResponse<Role>>, next: 
     next(error);
   }
 }
-getAllRoles.validationScheme = null;
+getAllRoles.validationSchema = null;
 
 async function getRoleById(req: Request<EntityId>, res: Response<Role>, next: NextFunction) {
   try{
@@ -42,7 +42,7 @@ async function getRoleById(req: Request<EntityId>, res: Response<Role>, next: Ne
     next(error);
   }
 }
-getRoleById.validationScheme = {params: {id: objectIdValidation}};
+getRoleById.validationSchema = {params: {id: objectIdValidation}};
 
 async function updateRole(
   req: Request<EntityId, {}, UpdateRoleInput>, res: Response<Role>, next: NextFunction,
@@ -54,7 +54,7 @@ async function updateRole(
     next(error);
   }
 }
-updateRole.validationScheme = {params: {id: objectIdValidation}, body: {name: Joi.string(), description: Joi.string()}};
+updateRole.validationSchema = {params: {id: objectIdValidation}, body: {name: Joi.string(), description: Joi.string()}};
 
 async function deleteRole(req: Request<EntityId>, res: Response<void>, next: NextFunction) {
   try{
@@ -64,7 +64,7 @@ async function deleteRole(req: Request<EntityId>, res: Response<void>, next: Nex
     next(error);
   }
 }
-deleteRole.validationScheme = {params: {id: objectIdValidation}};
+deleteRole.validationSchema = {params: {id: objectIdValidation}};
 
 async function assignPermissionToRole(
   req: Request<{ roleId: string; permissionId: string }>, 
@@ -79,7 +79,7 @@ async function assignPermissionToRole(
     next(error);
   }
 }
-assignPermissionToRole.validationScheme = { 
+assignPermissionToRole.validationSchema = { 
   params: { roleId: objectIdValidation, permissionId: objectIdValidation }, 
 };
   
@@ -96,7 +96,7 @@ async function removePermissionFromRole(
     next(error);
   }
 }
-removePermissionFromRole.validationScheme = { 
+removePermissionFromRole.validationSchema = { 
   params: { roleId: objectIdValidation, permissionId: objectIdValidation }, 
 };
   
@@ -109,17 +109,17 @@ export function installRoleRoutes(parentRouter: Router) {
     requireAuthentication,
     collectDeviceInfo, 
     requirePermission("userservice:create:any:role"), 
-    validate(createRole.validationScheme), 
+    validate(createRole.validationSchema), 
     createRole,
   );
-  router.get("/", validate(getAllRoles.validationScheme), getAllRoles);
-  router.get("/:id", validate(getRoleById.validationScheme), getRoleById);
+  router.get("/", validate(getAllRoles.validationSchema), getAllRoles);
+  router.get("/:id", validate(getRoleById.validationSchema), getRoleById);
   router.patch(
     "/:id", 
     requireAuthentication,
     collectDeviceInfo, 
     requirePermission("userservice:update:any:role"), 
-    validate(updateRole.validationScheme), 
+    validate(updateRole.validationSchema), 
     updateRole,
   );
   router.delete(
@@ -127,7 +127,7 @@ export function installRoleRoutes(parentRouter: Router) {
     requireAuthentication, 
     collectDeviceInfo,
     requirePermission("userservice:delete:any:role"), 
-    validate(deleteRole.validationScheme), 
+    validate(deleteRole.validationSchema), 
     deleteRole,
   );
 
@@ -136,14 +136,14 @@ export function installRoleRoutes(parentRouter: Router) {
     requireAuthentication, 
     collectDeviceInfo,
     requirePermission("userservice:assign:any:permission"), 
-    validate(assignPermissionToRole.validationScheme), 
+    validate(assignPermissionToRole.validationSchema), 
     assignPermissionToRole);
   router.delete(
     "/:roleId/permissions/:permissionId", 
     requireAuthentication, 
     collectDeviceInfo,
     requirePermission("userservice:remove:any:permission"), 
-    validate(removePermissionFromRole.validationScheme), 
+    validate(removePermissionFromRole.validationSchema), 
     removePermissionFromRole);
 
   parentRouter.use("/roles", router);

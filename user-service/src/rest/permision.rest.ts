@@ -7,8 +7,8 @@ import validate, { objectIdValidation } from "../core/validation";
 import * as permissionService from "../service/permission.service";
 import { EntityId, ListResponse } from "../types/common.types";
 import {
-  CreatePermissionInput,
-  UpdatePermissionInput,
+    CreatePermissionInput,
+    UpdatePermissionInput,
 } from "../types/permission.types";
 
 async function createPermission(
@@ -21,7 +21,7 @@ async function createPermission(
     next(error);
   }
 }
-createPermission.validationScheme = {body: {name: Joi.string().required(), description: Joi.string().optional()}};
+createPermission.validationSchema = {body: {name: Joi.string().required(), description: Joi.string().optional()}};
 
 async function getAllPermissions(_: Request, res: Response<ListResponse<Permission>>, next: NextFunction) {
   try{
@@ -31,7 +31,7 @@ async function getAllPermissions(_: Request, res: Response<ListResponse<Permissi
     next(error);
   }
 }
-getAllPermissions.validationScheme = null;
+getAllPermissions.validationSchema = null;
 
 async function getPermissionById(req: Request<EntityId>, res: Response<Permission>, next: NextFunction) {
   try{
@@ -41,7 +41,7 @@ async function getPermissionById(req: Request<EntityId>, res: Response<Permissio
     next(error);
   }
 }
-getPermissionById.validationScheme = {params: {id: objectIdValidation}};
+getPermissionById.validationSchema = {params: {id: objectIdValidation}};
 
 async function updatePermission(
   req: Request<EntityId, {}, UpdatePermissionInput>, res: Response<Permission>, next: NextFunction,
@@ -53,7 +53,7 @@ async function updatePermission(
     next(error);
   }
 }
-updatePermission.validationScheme = {
+updatePermission.validationSchema = {
   params: {id: objectIdValidation}, 
   body: {name: Joi.string(), description: Joi.string()},
 };
@@ -66,7 +66,7 @@ async function deletePermission(req: Request<EntityId>, res: Response<void>, nex
     next(error);
   }
 }
-deletePermission.validationScheme = {params: {id: objectIdValidation}};
+deletePermission.validationSchema = {params: {id: objectIdValidation}};
 
 export function installPermissionRoutes(parentRouter: Router) {
   const router = Router();
@@ -75,23 +75,23 @@ export function installPermissionRoutes(parentRouter: Router) {
     "/", 
     requireAuthentication, 
     requirePermission("userservice:create:any:permission"), 
-    validate(createPermission.validationScheme), 
+    validate(createPermission.validationSchema), 
     createPermission,
   );
-  router.get("/", validate(getAllPermissions.validationScheme), getAllPermissions);
-  router.get("/:id", validate(getPermissionById.validationScheme), getPermissionById);
+  router.get("/", validate(getAllPermissions.validationSchema), getAllPermissions);
+  router.get("/:id", validate(getPermissionById.validationSchema), getPermissionById);
   router.patch(
     "/:id", 
     requireAuthentication, 
     requirePermission("userservice:update:any:permission"), 
-    validate(updatePermission.validationScheme), 
+    validate(updatePermission.validationSchema), 
     updatePermission,
   );
   router.delete(
     "/:id", 
     requireAuthentication, 
     requirePermission("userservice:delete:any:permission"), 
-    validate(deletePermission.validationScheme), 
+    validate(deletePermission.validationSchema), 
     deletePermission,
   );
 

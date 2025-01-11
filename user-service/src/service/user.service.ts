@@ -6,7 +6,9 @@ import { hashPassword, verifyPassword } from "../core/password";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
 import { TokenType } from "../types/token.types";
-import { GetUserByIdResponse, UserLoginInput, UserSignupInput } from "../types/user.types";
+import {
+  AccountStatus, GetUserByIdResponse, UserLoginInput, UserSignupInput, UserUpdateInput,
+} from "../types/user.types";
 import handleDBError from "./_handleDBError";
 import * as tokenService from "./token.service";
 
@@ -17,24 +19,26 @@ export async function getAllUsers(): Promise<User[]> {
 
 // TODO: extract user account creation to its own service
 export async function createUser(userSignupInput: UserSignupInput): Promise<User> {
-  let user = await prisma.user.findUnique({ where: { email: userSignupInput.email } });
+  const user = await prisma.user.findUnique({ where: { email: userSignupInput.email } });
 
-  if (!user) {
-    user = await prisma.user.create({data: { email: userSignupInput.email }});
+  if (user) {
+    throw ServiceError.conflict("A user with this email already exists.");
   }
 
   const passwordHash = await hashPassword(userSignupInput.password);
-  await prisma.userAccount.create({
+  return await prisma.user.create({
     data: { 
-      userId: user.id, appId: userSignupInput.appId, username: userSignupInput.username, passwordHash, 
+      appId: userSignupInput.appId, 
+      email: userSignupInput.username, 
+      username: userSignupInput.username, 
+      passwordHash, 
     },
   });
-
-  return user;
 }
 
+// TODO : restrict deleted account / "inactive"
 export const login = async (userLoginInput: UserLoginInput, deviceId?: string) => {
-  const user = await prisma.user.findUnique({ where: { email: userLoginInput.email } });
+  const user = await prisma.user.findUnique({ where: {appId: userLoginInput.appId, email: userLoginInput.email } });
 
   if (!user) {
     throw ServiceError.unauthorized("The given email and password do not match.");
@@ -43,19 +47,15 @@ export const login = async (userLoginInput: UserLoginInput, deviceId?: string) =
   if (!user.isVerified) {
     throw ServiceError.unauthorized("Your email address is not verified. Please verify it before logging in.");
   }
-
-  const useraccount = await prisma.userAccount.findUnique(
-    { where: { idx_unique_user_app_account: { userId: user.id, appId: userLoginInput.appId } }, 
-    });
-
-  if (!useraccount) {
-    throw ServiceError.unauthorized("The given email and password do not match.");
-  }
     
-  const passwordValid = await verifyPassword(userLoginInput.password, useraccount.passwordHash);
+  const passwordValid = await verifyPassword(userLoginInput.password, user.passwordHash);
 
   if (!passwordValid) {
     throw ServiceError.unauthorized("The given email and password do not match.");
+  }
+
+  if (user.status === AccountStatus.BANNED) {
+    throw ServiceError.unauthorized("This account has been banned.");
   }
   
   const token = await tokenService.createToken(
@@ -178,15 +178,6 @@ export async function getUserById(id: string, requestingUserId: string): Promise
   const user = await prisma.user.findUnique({ 
     where: { id }, 
     include: { 
-      accounts: { 
-        select: { 
-          id: true, 
-          appId: true,
-          username: true,
-          passwordHash: true,
-          createdAt: true,
-          status: true },
-      }, 
       devices: { 
         select: {
           id: true,
@@ -210,7 +201,6 @@ export async function getUserById(id: string, requestingUserId: string): Promise
     id: user.id,
     email: user.email,
     profile: user.profile,
-    accounts: user.accounts,
     devices: user.devices.map((device) => ({
       ...device,
       ips: device.ips.map((ip) => ip.ipAddress),
@@ -248,8 +238,8 @@ export async function updateUserProfile(id: string, profile: any, requestingUser
   return user;
 }
 
-export function updateUserById(id: string, isVerified: boolean) {
-  return prisma.user.update({ where: { id }, data: { isVerified } });
+export function updateUserById(id: string, userUpdateInput: UserUpdateInput) {
+  return prisma.user.update({ where: { id }, data: { ...userUpdateInput } });
 }
 
 export async function linkRoleToUser(userId: string, roleId: string) {
