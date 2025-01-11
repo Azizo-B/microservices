@@ -7,6 +7,7 @@ import validate, { objectIdValidation } from "../core/validation"; // You may us
 import * as userAccountService from "../service/userAccount.service";
 import { EntityId, ListResponse } from "../types/common.types";
 import {
+  AccountStatus,
   UpdateUserAccountInput,
 } from "../types/userAccount.types"; // Import types
 
@@ -62,7 +63,7 @@ updateUserAccount.validationSchema = {
   },
   body: {
     username: Joi.string(),
-    status: Joi.string(),
+    status: Joi.string().valid(AccountStatus.ACTIVE, AccountStatus.INACTIVE, AccountStatus.BANNED),
   },
 };
 

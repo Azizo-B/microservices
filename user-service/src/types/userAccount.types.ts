@@ -3,3 +3,8 @@ export interface UpdateUserAccountInput {
   status: string;
 }
 
+export enum AccountStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  BANNED = "banned",
+}

@@ -1,7 +1,7 @@
 import { UserAccount } from "@prisma/client";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
-import { UpdateUserAccountInput } from "../types/userAccount.types";
+import { AccountStatus, UpdateUserAccountInput } from "../types/userAccount.types";
 import { checkPermission } from "./user.service";
 
 // userAccountService.ts
@@ -59,5 +59,5 @@ export async function updateUserAccount(
 
 // TODO: add delete event on kafka for other services to consume
 export async function deleteUserAccount(id:string): Promise<void> {
-  await prisma.userAccount.update({where: {id}, data: {status: "inactive"}});
+  await prisma.userAccount.update({where: {id}, data: {status: AccountStatus.INACTIVE}});
 }
