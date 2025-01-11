@@ -14,7 +14,7 @@ export interface Server {
   stop(): Promise<void>;
 }
 
-async function createServer(): Promise<Server> {
+export async function createServer(): Promise<Server> {
   const app = express();
 
   installMiddlewares(app);
@@ -28,11 +28,11 @@ async function createServer(): Promise<Server> {
     },
 
     start() {
-      return new Promise<void>((resolve) => {
+      return new Promise((resolve) => {
         app.listen(PORT, () => {
           getLogger().info(`Express listening on http://localhost:${PORT}`);
           resolve();
-        });
+        }).close();
       });
     },
 

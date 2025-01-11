@@ -36,10 +36,7 @@ export async function updatePermission(id: string, updatePermissionInput: Update
   try {
     const permission = await prisma.permission.update({
       where: { id },
-      data: {
-        name: updatePermissionInput.name,
-        description: updatePermissionInput.description,
-      },
+      data: {...updatePermissionInput},
     });
     return permission;
   } catch (error) {

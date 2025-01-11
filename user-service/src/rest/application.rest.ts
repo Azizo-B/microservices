@@ -6,8 +6,8 @@ import { requireAuthentication, requirePermission } from "../core/auth";
 import validate, { objectIdValidation } from "../core/validation";
 import * as applicationService from "../service/application.service";
 import {
-    CreateApplicationInput,
-    UpdateApplicationInput,
+  CreateApplicationInput,
+  UpdateApplicationInput,
 } from "../types/application.types";
 import { EntityId, ListResponse } from "../types/common.types";
 

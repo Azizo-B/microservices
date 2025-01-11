@@ -89,7 +89,7 @@ async function updateUserById(
   }
 }
 updateUserById.validationSchema = { 
-  params: { id: objectIdValidation }, 
+  params: { id: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")) }, 
   body: { 
     isVerified: Joi.boolean(), 
     status: Joi.string().valid(AccountStatus.ACTIVE, AccountStatus.INACTIVE, AccountStatus.BANNED),
@@ -104,7 +104,9 @@ async function getUserProfile(req: Request<EntityId>, res: Response, next: NextF
     next(error);
   }
 }
-getUserProfile.validationSchema = { params: { id: objectIdValidation } };
+getUserProfile.validationSchema = { 
+  params: { id: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")) }, 
+};
 
 async function updateUserProfile(req: Request<EntityId, {}, any>, res: Response, next: NextFunction) {
   try {
@@ -115,7 +117,7 @@ async function updateUserProfile(req: Request<EntityId, {}, any>, res: Response,
   }
 }
 updateUserProfile.validationSchema = { 
-  params: { id: objectIdValidation }, 
+  params: { id: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")) }, 
   body: Joi.optional(),
 };
 
@@ -128,7 +130,7 @@ async function linkRoleToUser(req: Request<{userId: string, roleId: string}>, re
   }
 }
 linkRoleToUser.validationSchema = {
-  params: { userId: objectIdValidation, roleId: objectIdValidation },
+  params: { userId: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")), roleId: objectIdValidation },
 };
 
 async function unlinkRoleFromUser(req: Request<{userId: string, roleId: string}>, res: Response, next: NextFunction) {
@@ -140,7 +142,7 @@ async function unlinkRoleFromUser(req: Request<{userId: string, roleId: string}>
   }
 }
 unlinkRoleFromUser.validationSchema = {
-  params: { userId: objectIdValidation , roleId: objectIdValidation },
+  params: { userId: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")), roleId: objectIdValidation },
 };
 
 export function installUserRoutes(parentRouter: Router) {

@@ -12,11 +12,6 @@ import {
 import handleDBError from "./_handleDBError";
 import * as tokenService from "./token.service";
 
-export async function getAllUsers(): Promise<User[]> {
-  const users = await prisma.user.findMany();
-  return users;
-}
-
 // TODO: extract user account creation to its own service
 export async function createUser(userSignupInput: UserSignupInput): Promise<User> {
   const user = await prisma.user.findUnique({
@@ -126,56 +121,10 @@ export async function checkPermission(permission: string, userId: string): Promi
   return permissions.includes(permission);
 };
 
-export async function getUserRolesAndPermissions(id: string) {
-  const user = await prisma.user.findUnique({ 
-    where: { id }, 
-    include: { 
-      roles: { 
-        include: { role: { include: { rolePermission: {include: { permission: true } } } } }, 
-      }, 
-    }, 
-  });
-
-  if (!user) {
-    return {roles: [], permissions: []};
-  }
-  const roles = user.roles.map((userRole) => userRole.role.name);
-  
-  const permissions = user.roles.flatMap((userRole) =>
-    userRole.role.rolePermission.map((rp) => rp.permission.name),
-  );
-  return {roles, permissions};
+export async function getAllUsers(): Promise<User[]> {
+  const users = await prisma.user.findMany();
+  return users;
 }
-
-export async function verifyEmail(token: string): Promise<Token> {
-  try {
-    
-    const { sub, jwtid } = await verifyJWT(token);
-
-    const dbToken = await prisma.token.findUnique({ where: { id: jwtid } });
-
-    if (!dbToken) {
-      throw ServiceError.validationFailed("Token not found.");
-    }
-
-    if (dbToken.revokedAt) {
-      throw ServiceError.validationFailed("Token has been revoked.");
-    }
-    
-    await prisma.user.update({ where: { id: sub }, data: { isVerified: true } });
-    await prisma.token.update({ where: { id: jwtid }, data: { revokedAt:  new Date() } });
-
-    return dbToken;
-  } catch (error: any) {
-    if (error instanceof TokenExpiredError) {
-      throw ServiceError.validationFailed("The token has expired.");
-    } else if (error instanceof JsonWebTokenError) {
-      throw ServiceError.unauthorized(`Invalid token: ${error.message}`);
-    } else {
-      throw ServiceError.unauthorized(error.message);
-    }
-  }
-};
 
 export async function getUserById(id: string, requestingUserId: string): Promise<GetUserByIdResponse> {
   id = id === "me" ? requestingUserId : id;
@@ -189,6 +138,7 @@ export async function getUserById(id: string, requestingUserId: string): Promise
   const user = await prisma.user.findUnique({ 
     where: { id }, 
     include: { 
+      application: {select:{name: true}},
       devices: { 
         select: {
           id: true,
@@ -207,10 +157,15 @@ export async function getUserById(id: string, requestingUserId: string): Promise
   if (!user) {
     throw ServiceError.notFound("User not found");
   }
-
+  // TODO: remove casting fix type 
   return { 
     id: user.id,
+    username: user.username,
     email: user.email,
+    status: user.status,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt,
+    application: user.application.name,
     profile: user.profile,
     devices: user.devices.map((device) => ({
       ...device,
@@ -219,6 +174,10 @@ export async function getUserById(id: string, requestingUserId: string): Promise
     roles,
     permissions,
   } as GetUserByIdResponse;
+}
+
+export function updateUserById(id: string, userUpdateInput: UserUpdateInput) {
+  return prisma.user.update({ where: { id }, data: { ...userUpdateInput } });
 }
 
 export async function getUserProfile(id: string, requestingUserId: string) {
@@ -249,41 +208,7 @@ export async function updateUserProfile(id: string, profile: any, requestingUser
   return user;
 }
 
-export function updateUserById(id: string, userUpdateInput: UserUpdateInput) {
-  return prisma.user.update({ where: { id }, data: { ...userUpdateInput } });
-}
-
-export async function resetPassword(token: string, newPassword: string): Promise<Token> {
-  try {
-    
-    const { sub, jwtid } = await verifyJWT(token);
-
-    const dbToken = await prisma.token.findUnique({ where: { id: jwtid } });
-
-    if (!dbToken) {
-      throw ServiceError.validationFailed("Token not found.");
-    }
-
-    if (dbToken.revokedAt) {
-      throw ServiceError.validationFailed("Token has been revoked.");
-    }
-    
-    const newPasswordHash = await hashPassword(newPassword);
-    await prisma.user.update({ where: { id: sub }, data: { passwordHash: newPasswordHash } });
-    await prisma.token.update({ where: { id: jwtid }, data: { revokedAt:  new Date() } });
-
-    return dbToken;
-  } catch (error: any) {
-    if (error instanceof TokenExpiredError) {
-      throw ServiceError.validationFailed("The token has expired.");
-    } else if (error instanceof JsonWebTokenError) {
-      throw ServiceError.unauthorized(`Invalid token: ${error.message}`);
-    } else {
-      throw ServiceError.unauthorized(error.message);
-    }
-  }
-};
-
+// TODO: extract common logic from linkrole and unlinkrole
 export async function linkRoleToUser(userId: string, roleId: string) {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -327,4 +252,87 @@ export async function unlinkRoleFromUser(userId: string, roleId: string) {
   } catch (error) {
     handleDBError(error);
   }
+}
+
+// TODO: extract common logic from verifyEmail and resetPassword
+export async function verifyEmail(token: string): Promise<Token> {
+  try {
+    
+    const { sub, jwtid } = await verifyJWT(token);
+
+    const dbToken = await prisma.token.findUnique({ where: { id: jwtid } });
+
+    if (!dbToken) {
+      throw ServiceError.validationFailed("Token not found.");
+    }
+
+    if (dbToken.revokedAt) {
+      throw ServiceError.validationFailed("Token has been revoked.");
+    }
+    
+    await prisma.user.update({ where: { id: sub }, data: { isVerified: true } });
+    await prisma.token.update({ where: { id: jwtid }, data: { revokedAt:  new Date() } });
+
+    return dbToken;
+  } catch (error: any) {
+    if (error instanceof TokenExpiredError) {
+      throw ServiceError.validationFailed("The token has expired.");
+    } else if (error instanceof JsonWebTokenError) {
+      throw ServiceError.unauthorized(`Invalid token: ${error.message}`);
+    } else {
+      throw ServiceError.unauthorized(error.message);
+    }
+  }
+};
+
+export async function resetPassword(token: string, newPassword: string): Promise<Token> {
+  try {
+    
+    const { sub, jwtid } = await verifyJWT(token);
+
+    const dbToken = await prisma.token.findUnique({ where: { id: jwtid } });
+
+    if (!dbToken) {
+      throw ServiceError.validationFailed("Token not found.");
+    }
+
+    if (dbToken.revokedAt) {
+      throw ServiceError.validationFailed("Token has been revoked.");
+    }
+    
+    const newPasswordHash = await hashPassword(newPassword);
+    await prisma.user.update({ where: { id: sub }, data: { passwordHash: newPasswordHash } });
+    await prisma.token.update({ where: { id: jwtid }, data: { revokedAt:  new Date() } });
+
+    return dbToken;
+  } catch (error: any) {
+    if (error instanceof TokenExpiredError) {
+      throw ServiceError.validationFailed("The token has expired.");
+    } else if (error instanceof JsonWebTokenError) {
+      throw ServiceError.unauthorized(`Invalid token: ${error.message}`);
+    } else {
+      throw ServiceError.unauthorized(error.message);
+    }
+  }
+};
+
+export async function getUserRolesAndPermissions(id: string) {
+  const user = await prisma.user.findUnique({ 
+    where: { id }, 
+    include: { 
+      roles: { 
+        include: { role: { include: { rolePermission: {include: { permission: true } } } } }, 
+      }, 
+    }, 
+  });
+
+  if (!user) {
+    return {roles: [], permissions: []};
+  }
+  const roles = user.roles.map((userRole) => userRole.role.name);
+  
+  const permissions = user.roles.flatMap((userRole) =>
+    userRole.role.rolePermission.map((rp) => rp.permission.name),
+  );
+  return {roles, permissions};
 }

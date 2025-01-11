@@ -1,8 +1,10 @@
 {
+  "port": 8888,
   "auth": {
+    "maxDelay": 0,
     "jwt": {
       "expirationInterval": 3600,
-      "secret": "secretindevelopmentenv"
+      "secret": "secretintestingenv"
     }
   }
 }

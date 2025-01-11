@@ -8,8 +8,8 @@ import validate, { objectIdValidation } from "../core/validation";
 import * as roleService from "../service/role.service";
 import { EntityId, ListResponse } from "../types/common.types";
 import {
-    CreateRoleInput,
-    UpdateRoleInput,
+  CreateRoleInput,
+  UpdateRoleInput,
 } from "../types/role.types";
 
 async function createRole(

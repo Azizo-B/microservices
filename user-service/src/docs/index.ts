@@ -120,6 +120,21 @@
  *           type: string
  *           description: The unique identifier for the user.
  *           example: "507f1f77bcf86cd799439011"
+ *         appId:
+ *           type: string
+ *           description: The application ID.
+ *           example: "6776f66b36f367b1e0f02bd3"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The creation date of the user account.
+ *           example: "2023-10-01T12:00:00Z"
+ *         status:
+ *           type: string
+ *           description: The status of the user account.
+ *           example: "active"
+ *         username:
+ *           type: string
  *         email:
  *           type: string
  *           description: The user's email address.
@@ -311,17 +326,17 @@
  *         - browser
  *         - browserVersion
  *         - ipAdresses
- *     UserAccount:
+ *     GetUserByIdResponse:
  *       type: object
  *       properties:
  *         id:
  *           type: string
- *           description: The unique identifier for the user account.
+ *           description: The unique identifier for the user.
  *           example: "507f1f77bcf86cd799439011"
- *         appId:
+ *         application:
  *           type: string
- *           description: The application ID.
- *           example: "6776f66b36f367b1e0f02bd3"
+ *           description: Name of the application the user is linked to.
+ *           example: "my app"
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -331,13 +346,8 @@
  *           type: string
  *           description: The status of the user account.
  *           example: "active"
- *     GetUserByIdResponse:
- *       type: object
- *       properties:
- *         id:
+ *         username:
  *           type: string
- *           description: The unique identifier for the user.
- *           example: "507f1f77bcf86cd799439011"
  *         email:
  *           type: string
  *           description: The user's email address.
@@ -358,10 +368,6 @@
  *             type: string
  *           description: The permissions granted to the user.
  *           example: ["userservice:read:any:user", "userservice:list:any:user"]
- *         userAccounts:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/UserAccount'
  *         devices:
  *           type: array
  *           items:

@@ -7,8 +7,8 @@ import validate, { objectIdValidation } from "../core/validation";
 import * as permissionService from "../service/permission.service";
 import { EntityId, ListResponse } from "../types/common.types";
 import {
-    CreatePermissionInput,
-    UpdatePermissionInput,
+  CreatePermissionInput,
+  UpdatePermissionInput,
 } from "../types/permission.types";
 
 async function createPermission(
@@ -55,7 +55,7 @@ async function updatePermission(
 }
 updatePermission.validationSchema = {
   params: {id: objectIdValidation}, 
-  body: {name: Joi.string(), description: Joi.string()},
+  body: {name: Joi.string().optional(), description: Joi.string().optional()},
 };
 
 async function deletePermission(req: Request<EntityId>, res: Response<void>, next: NextFunction) {

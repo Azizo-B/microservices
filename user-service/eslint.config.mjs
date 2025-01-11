@@ -1,5 +1,6 @@
 import eslint from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
+import jest from "eslint-plugin-jest";
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
@@ -39,5 +40,9 @@ export default tseslint.config(
             '@typescript-eslint/no-empty-object-type': 'off',
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
         },
+    },
+    {
+        files: ['**/*.test.ts'],
+        plugins: { jest },
     },
 );
