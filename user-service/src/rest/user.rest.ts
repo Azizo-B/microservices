@@ -40,6 +40,20 @@ async function verifyEmail(req: Request<{}, {}, {token:string}>, res: Response, 
 }
 verifyEmail.validationSchema = { body: { token: Joi.string() } };
 
+async function resetPassword(
+  req: Request<{}, {}, {token:string, newPassword: string}>, res: Response, next: NextFunction,
+) {
+  try {
+    const token = await userService.resetPassword(req.body.token, req.body.newPassword);
+    req.userId = token.userId;
+    await createDevice(req);
+    res.send();
+  } catch (error) {
+    next(error);
+  }
+}
+resetPassword.validationSchema = { body: { token: Joi.string(),  newPassword: Joi.string()} };
+
 async function getAllUsers(_: Request, res: Response<ListResponse<User>>, next: NextFunction) {
   try {
     const users = await userService.getAllUsers();
@@ -177,6 +191,7 @@ export function installUserRoutes(parentRouter: Router) {
   );
 
   router.post("/verify-email", validate(verifyEmail.validationSchema), verifyEmail);
+  router.post("/reset-password", validate(resetPassword.validationSchema), authDelay, resetPassword);
 
   router.post(
     "/:userId/roles/:roleId",

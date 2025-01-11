@@ -26,6 +26,7 @@
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
+
 /**
  * @swagger
  * /api/users/verify-email:
@@ -47,6 +48,38 @@
  *     responses:
  *       200:
  *         description: Email verified successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ * @swagger
+ * /api/users/reset-password:
+ *   post:
+ *     summary: Resets a user's passwaord
+ *     description: Resets a user's password using the provided token and new password.
+ *     tags:
+ *       - User Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: The password reset token
+ *               newPassword:
+ *                 type: string
+ *                 description: new password
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       401:

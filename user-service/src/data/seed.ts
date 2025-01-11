@@ -11,7 +11,6 @@ async function main() {
   await prisma.token.deleteMany({});
   await prisma.ip.deleteMany({});
   await prisma.device.deleteMany({});
-  await prisma.userAccount.deleteMany({});
   await prisma.userRole.deleteMany({});
   await prisma.rolePermission.deleteMany({});
   await prisma.permission.deleteMany({});
@@ -31,6 +30,9 @@ async function main() {
   const user = await prisma.user.create({
     data: {
       email: "admin@localhost.com",
+      appId: application.id,
+      passwordHash: await hashPassword("admin"),
+      username: "admin",
       isVerified: true,
     },
   });
@@ -43,16 +45,6 @@ async function main() {
       expiresAt: new Date(),
       type: TokenType.SESSION,
       appId: application.id,
-    },
-  });
-
-  // Create user account
-  const userAccount = await prisma.userAccount.create({
-    data: {
-      userId: user.id,
-      appId: application.id,
-      passwordHash: await hashPassword("admin"),
-      username: "admin",
     },
   });
 
@@ -112,7 +104,6 @@ async function main() {
   console.log("Application created:", application);
   console.log("User created:", user);
   console.log("Token created:", token);
-  console.log("User account created:", userAccount);
   console.log("Admin role created:", adminRole);
   console.log("Permissions created:", permissions);
   console.log("Seeding completed.");

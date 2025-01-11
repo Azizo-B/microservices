@@ -19,7 +19,13 @@ export async function getAllUsers(): Promise<User[]> {
 
 // TODO: extract user account creation to its own service
 export async function createUser(userSignupInput: UserSignupInput): Promise<User> {
-  const user = await prisma.user.findUnique({ where: { email: userSignupInput.email } });
+  const user = await prisma.user.findUnique({
+    where: { 
+      idx_unique_user_email_app_account:{
+        email: userSignupInput.email, appId: userSignupInput.appId, 
+      },
+    },
+  });
 
   if (user) {
     throw ServiceError.conflict("A user with this email already exists.");
@@ -38,8 +44,13 @@ export async function createUser(userSignupInput: UserSignupInput): Promise<User
 
 // TODO : restrict deleted account / "inactive"
 export const login = async (userLoginInput: UserLoginInput, deviceId?: string) => {
-  const user = await prisma.user.findUnique({ where: {appId: userLoginInput.appId, email: userLoginInput.email } });
-
+  const user = await prisma.user.findUnique({
+    where: { 
+      idx_unique_user_email_app_account:{
+        email: userLoginInput.email, appId: userLoginInput.appId, 
+      },
+    },
+  });
   if (!user) {
     throw ServiceError.unauthorized("The given email and password do not match.");
   }
@@ -241,6 +252,37 @@ export async function updateUserProfile(id: string, profile: any, requestingUser
 export function updateUserById(id: string, userUpdateInput: UserUpdateInput) {
   return prisma.user.update({ where: { id }, data: { ...userUpdateInput } });
 }
+
+export async function resetPassword(token: string, newPassword: string): Promise<Token> {
+  try {
+    
+    const { sub, jwtid } = await verifyJWT(token);
+
+    const dbToken = await prisma.token.findUnique({ where: { id: jwtid } });
+
+    if (!dbToken) {
+      throw ServiceError.validationFailed("Token not found.");
+    }
+
+    if (dbToken.revokedAt) {
+      throw ServiceError.validationFailed("Token has been revoked.");
+    }
+    
+    const newPasswordHash = await hashPassword(newPassword);
+    await prisma.user.update({ where: { id: sub }, data: { passwordHash: newPasswordHash } });
+    await prisma.token.update({ where: { id: jwtid }, data: { revokedAt:  new Date() } });
+
+    return dbToken;
+  } catch (error: any) {
+    if (error instanceof TokenExpiredError) {
+      throw ServiceError.validationFailed("The token has expired.");
+    } else if (error instanceof JsonWebTokenError) {
+      throw ServiceError.unauthorized(`Invalid token: ${error.message}`);
+    } else {
+      throw ServiceError.unauthorized(error.message);
+    }
+  }
+};
 
 export async function linkRoleToUser(userId: string, roleId: string) {
   try {

@@ -70,3 +70,5 @@ main();
 // TODO: finetune prisma schema by adding unique idx
 // TODO: write tests 
 // TODO: On event kafka bus
+// TODO: remove password hash from return values 
+// TODO: update user schema in docs
