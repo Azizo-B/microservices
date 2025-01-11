@@ -1,61 +1,63 @@
 import { UserAccount } from "@prisma/client";
-import { prisma } from "../data";
-import handleDBError from "./_handleDBError";
-import { CreateUserAccountInput, UpdateUserAccountInput } from "../types/userAccount.types";
-import { checkPermission } from "./user.service";
 import ServiceError from "../core/serviceError";
-
+import { prisma } from "../data";
+import { UpdateUserAccountInput } from "../types/userAccount.types";
+import { checkPermission } from "./user.service";
 
 // userAccountService.ts
 export async function createUserAccount(
-    username: string, 
-    passwordHash: string, 
-    status: string, 
-    userId: string, 
-    appId: string
+  username: string, 
+  passwordHash: string, 
+  status: string, 
+  userId: string, 
+  appId: string,
 ): Promise<UserAccount> {
-    const userAccount = await prisma.userAccount.create({
-        data: {
-            username,
-            passwordHash, 
-            status,
-            userId,
-            appId
-        }
-    });
+  const userAccount = await prisma.userAccount.create({
+    data: {
+      username,
+      passwordHash, 
+      status,
+      userId,
+      appId,
+    },
+  });
 
-    return userAccount;
+  return userAccount;
 }
 
+export async function getAllUserAccounts(userId: string): Promise<UserAccount[]>{
+  let filter = {};
+  if (! await checkPermission("userservice:list:any:useraccounts", userId)) {
+    filter = {where: {userId}};
+  }
 
-export async function getAllUserAccounts(requestingUserId: string, userId: string): Promise<UserAccount[]>{
-    userId= userId === "me" ? requestingUserId : userId;
+  const userAccounts = await prisma.userAccount.findMany(filter);
+  return userAccounts;
+
+}
+
+export async function getUserAccountById(id: string, requestingUserId: string): Promise<UserAccount>{
+  const userAccount = await prisma.userAccount.findUnique({where: {id}});
+
+  if(!userAccount){
+    throw ServiceError.notFound("User account not found"); // Do not leak user information
+  }
     
-      if (userId !== requestingUserId && ! await checkPermission("userservice:list:any:useraccounts", requestingUserId)) {
-        throw ServiceError.notFound("User not found"); // Do not leak user information
-      }
-    
-
-    const userAccounts = await prisma.userAccount.findMany({where: {id: userId} });
-    return userAccounts;
-
+  if (id !== requestingUserId && ! await checkPermission("userservice:read:any:useraccounts", requestingUserId)) {
+    throw ServiceError.notFound("User account not found"); // Do not leak user information
+  }
+  return userAccount;
 }
 
-
-export async function getUserAccountById(id: string): Promise<UserAccount | null>{
-    const userAccount = await prisma.userAccount.findUnique({where: {id}});
-    return userAccount;
+export async function updateUserAccount(
+  id: string, updateUserAccountInput: UpdateUserAccountInput,
+): Promise<UserAccount>{
+  const {username, status} = updateUserAccountInput;
+  const userAccount = await prisma.userAccount.update({where: {id}, data: {username, status}}); 
+  return userAccount; 
 }
 
-export async function updateUserAccount(id: string, UpdateUserAccountInput: UpdateUserAccountInput): Promise<UserAccount>{
-    const {username, status} = UpdateUserAccountInput;
-    const userAccount = await prisma.userAccount.update({where: {id}, data: {username, status}}); //idk of ik userid en appid ook moe update
-    return userAccount; 
+// TODO: add delete event on kafka for other services to consume
+export async function deleteUserAccount(id:string): Promise<void> {
+  await prisma.userAccount.update({where: {id}, data: {status: "inactive"}});
 }
-
-export async function deleteUserAccount(id:string): Promise<UserAccount> {
-    const userAccount = await prisma.userAccount.update({where: {id}, data: {status: 'inactive'}});
-    return userAccount;
-}
-
-
