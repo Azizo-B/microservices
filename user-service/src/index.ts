@@ -32,7 +32,7 @@ export async function createServer(): Promise<Server> {
         app.listen(PORT, () => {
           getLogger().info(`Express listening on http://localhost:${PORT}`);
           resolve();
-        }).close();
+        });
       });
     },
 
