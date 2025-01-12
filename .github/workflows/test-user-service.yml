@@ -1,17 +1,22 @@
 name: Testing - User Service
 
 on:
-  push:
-    paths:
-      - "user-service/**"
   pull_request:
     paths:
       - "user-service/**"
 
+  workflow_call:
+    secrets:
+      DATABASE_URL:
+        required: true
+
 jobs:
+  lint:
+    uses: "./.github/workflows/lint-user-service.yml"
   test:
     name: Run Tests for User Service
     runs-on: ubuntu-latest
+    needs: ["lint"]
 
     steps:
       - name: Checkout Code

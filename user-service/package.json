@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start:dev": "tsx watch --env-file .env src/index.ts",
-    "start": "node --env-file .env dist/src/index.js",
+    "start": "node dist/src/index.js",
     "build": "tsc",
     "lint": "eslint . --fix",
     "migrate:dev": "prisma db push",

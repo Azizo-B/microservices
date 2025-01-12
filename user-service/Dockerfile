@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -13,11 +13,14 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
+# Generate Prisma client
+RUN npx prisma generate
+
 # Build the TypeScript code
 RUN npm run build
 
 # Stage 2: Create the production image
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -25,12 +28,13 @@ WORKDIR /usr/src/app
 # Copy only the necessary files from the build stage
 COPY --from=build /usr/src/app/dist /usr/src/app/dist
 COPY --from=build /usr/src/app/package*.json /usr/src/app/
+COPY --from=build /usr/src/app/config /usr/src/app/config
 
 # Install only production dependencies
 RUN npm install --production
 
 # Expose the port the app runs on
-EXPOSE 9000
+EXPOSE $PORT
 
 # Define environment variable
 ENV NODE_ENV=production

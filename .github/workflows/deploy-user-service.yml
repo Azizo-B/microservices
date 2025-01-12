@@ -4,14 +4,17 @@ on:
   push:
     paths:
       - "user-service/**"
-  pull_request:
-    paths:
-      - "user-service/**"
 
 jobs:
+  test:
+    uses: "./.github/workflows/test-user-service.yml"
+    secrets:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
   deploy:
     name: Deploy to Google Cloud Run
     runs-on: ubuntu-latest
+    needs: ["test"]
 
     steps:
       - name: Checkout Code
@@ -22,10 +25,10 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Set up GCP service account key
-        run: echo "${{ secrets.GCP_SA_KEY }}" > "${{ github.workspace }}/gcp-key.json"
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: "${{ github.workspace }}/gcp-key.json"
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Authenticate Docker with GCP
         run: gcloud auth configure-docker
@@ -33,7 +36,7 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           IMAGE="gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.SERVICE_NAME }}"
-          docker build -t $IMAGE .
+          docker build -t $IMAGE ./user-service 
           docker push $IMAGE
 
       - name: Deploy to Cloud Run

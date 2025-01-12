@@ -1,12 +1,7 @@
 name: Linting - User Service
 
 on:
-  push:
-    paths:
-      - "user-service/**"
-  pull_request:
-    paths:
-      - "user-service/**"
+  workflow_call:
 
 jobs:
   lint:
