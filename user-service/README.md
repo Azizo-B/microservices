@@ -26,6 +26,8 @@ This service streamlines user management by offering clear authentication, autho
 
 ---
 
+### Start Up
+
 1.  ### Install dependencies:
 
     ```sh
@@ -77,6 +79,30 @@ This service streamlines user management by offering clear authentication, autho
       npm run build
       npm start
       ```
+
+### Run Tests
+
+To run the tests, follow these steps:
+
+1. Ensure that your test database and node_env is set up and configured in the `.env.test` file.
+
+2. Run the tests using the following command:
+
+   ```sh
+   npm run test
+   ```
+
+   To run the tests with coverage, use the following command:
+
+   ```sh
+   npm run test:coverage
+   ```
+
+   To troubleshoot open handles, use the following command:
+
+   ```sh
+   npx env-cmd -f .env.test jest --runInBand --detectOpenHandles
+   ```
 
 ## Documentation and Configuration
 

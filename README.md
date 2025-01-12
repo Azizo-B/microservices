@@ -1,6 +1,6 @@
 # Microservices
 
-- ### [User service ERD](#user-service-erd)
+- ### [User service](/user-service/)
 
 ---
 

@@ -1,0 +1,35 @@
+name: Testing - User Service
+
+on:
+  push:
+    paths:
+      - "user-service/**"
+  pull_request:
+    paths:
+      - "user-service/**"
+
+jobs:
+  test:
+    name: Run Tests for User Service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        working-directory: ./user-service
+        run: npm install
+
+      - name: Run Tests
+        working-directory: ./user-service
+        run: npm test
+
+      - name: Generate Coverage Report
+        working-directory: ./user-service
+        run: npm run test:coverage

@@ -1,8 +1,13 @@
 [User]
 *id
+appId
+username
 email
+passwordHash
 isVerified
 profile
+status
+createdAt
 
 [Token]
 *id
@@ -43,15 +48,6 @@ deviceInfo
 *id
 deviceId
 ipAddress
-
-[UserAccount]
-*id
-userId
-appId
-username
-passwordHash
-status
-createdAt
 
 [Application]
 *id
