@@ -29,9 +29,13 @@ WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/dist /usr/src/app/dist
 COPY --from=build /usr/src/app/package*.json /usr/src/app/
 COPY --from=build /usr/src/app/config /usr/src/app/config
+COPY --from=build /usr/src/app/src/data/schema.prisma /usr/src/app/src/data/schema.prisma
 
 # Install only production dependencies
 RUN npm install --production
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Expose the port the app runs on
 EXPOSE $PORT
