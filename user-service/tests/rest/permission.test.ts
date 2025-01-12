@@ -98,7 +98,9 @@ describe("Permission REST", () => {
         .send({ name: "Updated Permission" });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ id: permissionId, name: "Updated Permission", description: "Permission to update" });
+      expect(response.body).toEqual({ 
+        id: permissionId, name: "Updated Permission", description: "Permission to update", 
+      });
     });
 
     it("should return 403 for regular users", async () => {
@@ -130,8 +132,8 @@ describe("Permission REST", () => {
         .set("Authorization", adminToken);
 
       expect(response.status).toBe(204);
-    const deletedPermission = await prisma.application.findFirst({where: {id: permissionId}})
-    expect(deletedPermission).toBeNull()
+      const deletedPermission = await prisma.application.findFirst({where: {id: permissionId}});
+      expect(deletedPermission).toBeNull();
     });
 
     it("should return 403 for regular users", async () => {

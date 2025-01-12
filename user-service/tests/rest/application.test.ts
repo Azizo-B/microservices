@@ -130,8 +130,8 @@ describe("Application REST", () => {
         .set("Authorization", adminToken);
 
       expect(response.status).toBe(204);
-      const deletedApp = await prisma.application.findFirst({where: {id: appId}})
-      expect(deletedApp).toBeNull()
+      const deletedApp = await prisma.application.findFirst({where: {id: appId}});
+      expect(deletedApp).toBeNull();
     });
 
     it("should return 403 for regular users", async () => {

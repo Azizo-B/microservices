@@ -26,6 +26,12 @@ jobs:
         working-directory: ./user-service
         run: npm install
 
+      - name: Create .env.test File
+        working-directory: ./user-service
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.test
+          echo "NODE_ENV=testing" >> .env.test
+
       - name: Run Tests
         working-directory: ./user-service
         run: npm test
