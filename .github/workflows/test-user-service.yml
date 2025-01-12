@@ -32,10 +32,6 @@ jobs:
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.test
           echo "NODE_ENV=testing" >> .env.test
 
-      - name: Run Tests
-        working-directory: ./user-service
-        run: npm test
-
       - name: Generate Coverage Report
         working-directory: ./user-service
         run: npm run test:coverage
