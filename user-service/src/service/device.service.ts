@@ -40,12 +40,31 @@ export async function getDeviceById(id: string, userId: string): Promise<DeviceA
 
 export const createDevice = async (req: Request) => {
   try{
-    const userAgent = req.headers["user-agent"] || "Unknown";
-    const ipAddress = req.ip || req.connection.remoteAddress || "Unknown";
-    
+    const userAgent = req.headers["user-agent"] || "Unknown";    
     const parser = new UAParser(userAgent);
     const parsedUA = parser.getResult();
-    const geo = geoip.lookup(ipAddress);
+
+    // Extract IPs from headers and request
+    const xForwardedFor = req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim();
+    const xRealIp = req.headers["x-real-ip"]?.toString();
+    const GcpRemoteIp = req.headers["remoteIp"]?.toString();
+    const reqIp = req.ip;
+    const remoteAddress = req.connection.remoteAddress;
+
+    // Aggregate potential IPs
+    const ipCandidates = [xForwardedFor, xRealIp, GcpRemoteIp, reqIp, remoteAddress];
+
+    let geo = null;
+    let ipAddress = "Unknown";
+    for (const ip of ipCandidates) {
+      if (ip) {
+        geo = geoip.lookup(ip);
+        if (geo) {
+          ipAddress = ip;
+          break;
+        }
+      }
+    }
     
     const deviceInfo = {
       browser: parsedUA.browser.name || "Unknown",

@@ -15,8 +15,8 @@
     "lint": "eslint . --fix",
     "migrate:dev": "prisma db push",
     "seed": "prisma db seed",
-    "test": "env-cmd -f .env.test jest --runInBand",
-    "test:coverage": "env-cmd -f .env.test jest --runInBand --coverage"
+    "test": "env-cmd -f .env.test jest --runInBand --silent",
+    "test:coverage": "env-cmd -f .env.test jest --runInBand --coverage --silent"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
