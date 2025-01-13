@@ -34,7 +34,7 @@ export async function login(req: Request<{}, {}, UserLoginInput>, res: Response<
     const token = await userService.login(req.body);
     req.userId = token.userId;
     const deviceId = await createDevice(req);
-    tokenService.linkTokenToDevice(token.id, deviceId);
+    await tokenService.linkTokenToDevice(token.id, deviceId);
     res.send({token: token.token});
   } catch (error) {
     next(error);

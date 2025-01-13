@@ -11,8 +11,10 @@ const config: Config = {
     "./src/service/**/*.ts",
     "./src/rest/**/*.ts",
   ],
+  testPathIgnorePatterns: ["/node_modules/", "/dist/"],
   coverageDirectory: "tests/coverage",
   testTimeout: 120000,
+  forceExit: true,
 };
 
 export default config;

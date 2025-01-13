@@ -47,7 +47,7 @@ async function main() {
   try {
     const server = await createServer();
     await server.start();
-
+    
     async function onClose() {
       await server.stop();
       process.exit(0);

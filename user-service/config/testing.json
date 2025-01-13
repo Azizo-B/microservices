@@ -1,5 +1,5 @@
 {
-  "port": 8888,
+  "port": 0,
   "auth": {
     "maxDelay": 0,
     "jwt": {

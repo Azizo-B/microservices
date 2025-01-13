@@ -20,7 +20,6 @@ export default function withServer(setter: (s: supertest.Agent) => void): void {
 
   beforeAll(async () => {
     server = await createServer();
-    await cleanUp();
 
     await prisma.application.create({data:{id:"507f191e810c19729de860ea", name:"Test Application"}});
 
