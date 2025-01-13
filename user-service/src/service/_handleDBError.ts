@@ -18,7 +18,8 @@ export default function handleDBError(error: any): never {
     switch (true) {
       case message.includes("user"):
         throw ServiceError.notFound("No user with this id exists");
-
+      default:
+        throw ServiceError.notFound("No item with this id exists.");
     }
   }
 

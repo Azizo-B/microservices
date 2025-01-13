@@ -77,17 +77,25 @@ export const createDevice = async (req: Request) => {
     if (!device) {
       device = await prisma.device.create({
         data: {
-          userId: req.userId,
           userAgent: userAgent,
           ipAddress,
           ...deviceInfo,
+          user:{
+            connect:{
+              id: req.userId,
+            },
+          },
         },
       });
     
       await prisma.ip.create({
         data: {
-          deviceId: device.id,
           ipAddress,
+          device:{
+            connect:{
+              id: device.id,
+            },
+          },
         },
       });
     }

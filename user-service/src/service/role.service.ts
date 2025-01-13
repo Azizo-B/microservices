@@ -45,10 +45,7 @@ export async function updateRole(id: string, updateRoleInput: UpdateRoleInput): 
   try {
     const role = await prisma.role.update({
       where: { id },
-      data: {
-        name: updateRoleInput.name,
-        description: updateRoleInput.description,
-      },
+      data: {...updateRoleInput},
     });
     return role;
   } catch (error) {
@@ -83,7 +80,16 @@ export async function assignPermissionToRole(roleId: string, permissionId: strin
       return; 
     }
 
-    await prisma.rolePermission.create({ data: { roleId, permissionId } });
+    await prisma.rolePermission.create({ 
+      data: { 
+        role:{ 
+          connect: { id: roleId }, 
+        }, 
+        permission:{
+          connect:{ id: permissionId },
+        }, 
+      }, 
+    });
   } catch (error) {
     handleDBError(error);
   }

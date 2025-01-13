@@ -12,6 +12,10 @@
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
+ *       description: |
+ *          This authentication scheme uses JSON Web Tokens (JWT). 
+ *          Clients must include a valid JWT in the `Authorization` header 
+ *          of their requests using the format: `Authorization: Bearer <token>`.
  *   schemas:
  *     Token:
  *       type: object

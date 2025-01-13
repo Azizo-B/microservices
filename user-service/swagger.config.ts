@@ -1,4 +1,5 @@
 import config from "config";
+const PORT = config.get<string>("port");
 const SERVER_URL = config.get<string>("server_url");
 const NODE_ENV = config.get<string>("env");
 
@@ -16,6 +17,6 @@ export default {
       version: "1.0.0",
       description: "User service API documentation",
     },
-    servers: [{ url:  SERVER_URL }],
+    servers: [{ url:  SERVER_URL }, { url:  `http://localhost:${PORT}` }],
   },
 };

@@ -19,31 +19,39 @@ function makePublicUser(user: User): PublicUser{
   delete (publicUser as any).passwordHash; 
   return publicUser;
 }
-// TODO: extract user account creation to its own service
+
 export async function createUser(userSignupInput: UserSignupInput): Promise<PublicUser> {
-  const user = await prisma.user.findUnique({
-    where: { 
-      idx_unique_user_email_app_account:{
-        email: userSignupInput.email, appId: userSignupInput.appId, 
+  try{
+    const user = await prisma.user.findUnique({
+      where: { 
+        idx_unique_user_email_app_account:{
+          email: userSignupInput.email, appId: userSignupInput.appId, 
+        },
       },
-    },
-  });
+    });
 
-  if (user) {
-    throw ServiceError.conflict("A user with this email already exists.");
+    if (user) {
+      throw ServiceError.conflict("A user with this email already exists.");
+    }
+
+    const passwordHash = await hashPassword(userSignupInput.password);
+    return makePublicUser(
+      await prisma.user.create({
+        data: { 
+          email: userSignupInput.username, 
+          username: userSignupInput.username, 
+          passwordHash, 
+          application:{
+            connect:{
+              id: userSignupInput.appId,
+            },
+          },
+        },
+      }),
+    );
+  }catch(error){
+    handleDBError(error);
   }
-
-  const passwordHash = await hashPassword(userSignupInput.password);
-  return makePublicUser(
-    await prisma.user.create({
-      data: { 
-        appId: userSignupInput.appId, 
-        email: userSignupInput.username, 
-        username: userSignupInput.username, 
-        passwordHash, 
-      },
-    }),
-  );
 }
 
 // TODO : restrict deleted account / "inactive"

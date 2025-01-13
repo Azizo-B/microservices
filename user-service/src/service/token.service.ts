@@ -21,10 +21,12 @@ export async function createToken(userId: string, createTokenInput: CreateTokenI
     
     const tokenRecord = await prisma.token.create({
       data: {
-        userId: user.id,
-        ...createTokenInput,
+        type: createTokenInput.type,
         expiresAt: new Date(Date.now() + JWT_EXPIRATION_INTERVAL * 1000),
         token: "",
+        user: { connect: { id: userId } },
+        ...(createTokenInput.deviceId && { device: { connect: { id: createTokenInput.deviceId } } }),
+        application: { connect: { id: createTokenInput.appId } },
       },
     });
 
@@ -107,6 +109,6 @@ export async function deleteToken(userId: string, tokenId: string): Promise<void
 export async function linkTokenToDevice(tokenId: string, deviceId: string) {
   return await prisma.token.update({
     where: { id: tokenId },
-    data: { deviceId },
+    data: { device: { connect: {id: deviceId } } },
   });
 }

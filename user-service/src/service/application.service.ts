@@ -29,7 +29,7 @@ export async function getApplicationById(id: string): Promise<Application> {
 
 export async function updateApplication(id: string, updateAppInput: UpdateApplicationInput): Promise<Application> {
   try{
-    const application = await prisma.application.update({ where: { id }, data: { name: updateAppInput.name } });
+    const application = await prisma.application.update({ where: { id }, data: { ...updateAppInput } });
     return application;
   } catch(error){
     handleDBError(error);
