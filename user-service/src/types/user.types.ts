@@ -32,3 +32,14 @@ export interface UserUpdateInput {
   isVerified: boolean
   status: AccountStatus
 }
+
+export interface PublicUser{
+  id: string;
+  appId: string;
+  username: string;
+  email: string;
+  profile: JsonValue;
+  status: string;
+  isVerified: boolean;
+  createdAt: Date;
+}

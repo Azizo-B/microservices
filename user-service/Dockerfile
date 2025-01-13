@@ -13,7 +13,7 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Generate Prisma client
+# Generate Prisma client to make prisma types
 RUN npx prisma generate
 
 # Build the TypeScript code
@@ -37,6 +37,7 @@ RUN npm install --production
 # Generate Prisma client
 RUN npx prisma generate
 
+
 # Expose the port the app runs on
 EXPOSE $PORT
 
@@ -44,4 +45,4 @@ EXPOSE $PORT
 ENV NODE_ENV=production
 
 # Run the application
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma db push && npm start"]

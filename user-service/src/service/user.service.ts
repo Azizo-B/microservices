@@ -7,13 +7,20 @@ import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
 import { TokenType } from "../types/token.types";
 import {
-  AccountStatus, GetUserByIdResponse, UserLoginInput, UserSignupInput, UserUpdateInput,
+  AccountStatus, GetUserByIdResponse,
+  PublicUser,
+  UserLoginInput, UserSignupInput, UserUpdateInput,
 } from "../types/user.types";
 import handleDBError from "./_handleDBError";
 import * as tokenService from "./token.service";
 
+function makePublicUser(user: User): PublicUser{
+  const publicUser = {...user};
+  delete (publicUser as any).passwordHash; 
+  return publicUser;
+}
 // TODO: extract user account creation to its own service
-export async function createUser(userSignupInput: UserSignupInput): Promise<User> {
+export async function createUser(userSignupInput: UserSignupInput): Promise<PublicUser> {
   const user = await prisma.user.findUnique({
     where: { 
       idx_unique_user_email_app_account:{
@@ -27,14 +34,16 @@ export async function createUser(userSignupInput: UserSignupInput): Promise<User
   }
 
   const passwordHash = await hashPassword(userSignupInput.password);
-  return await prisma.user.create({
-    data: { 
-      appId: userSignupInput.appId, 
-      email: userSignupInput.username, 
-      username: userSignupInput.username, 
-      passwordHash, 
-    },
-  });
+  return makePublicUser(
+    await prisma.user.create({
+      data: { 
+        appId: userSignupInput.appId, 
+        email: userSignupInput.username, 
+        username: userSignupInput.username, 
+        passwordHash, 
+      },
+    }),
+  );
 }
 
 // TODO : restrict deleted account / "inactive"
@@ -121,9 +130,10 @@ export async function checkPermission(permission: string, userId: string): Promi
   return permissions.includes(permission);
 };
 
-export async function getAllUsers(): Promise<User[]> {
+export async function getAllUsers(): Promise<PublicUser[]> {
   const users = await prisma.user.findMany();
-  return users;
+  const publicUsers = users.map((u)=> makePublicUser(u));
+  return publicUsers;
 }
 
 export async function getUserById(id: string, requestingUserId: string): Promise<GetUserByIdResponse> {

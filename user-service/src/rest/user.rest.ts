@@ -1,4 +1,3 @@
-import { User } from "@prisma/client";
 import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import Joi from "joi";
@@ -8,7 +7,7 @@ import validate, { objectIdValidation } from "../core/validation";
 import { createDevice } from "../service/device.service";
 import * as userService from "../service/user.service";
 import { EntityId, ListResponse } from "../types/common.types";
-import { AccountStatus, GetUserByIdResponse, UserSignupInput, UserUpdateInput } from "../types/user.types";
+import { AccountStatus, GetUserByIdResponse, PublicUser, UserSignupInput, UserUpdateInput } from "../types/user.types";
 
 async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response, next: NextFunction) {
   try {
@@ -54,7 +53,7 @@ async function resetPassword(
 }
 resetPassword.validationSchema = { body: { token: Joi.string(),  newPassword: Joi.string()} };
 
-async function getAllUsers(_: Request, res: Response<ListResponse<User>>, next: NextFunction) {
+async function getAllUsers(_: Request, res: Response<ListResponse<PublicUser>>, next: NextFunction) {
   try {
     const users = await userService.getAllUsers();
     res.send({items: users});
