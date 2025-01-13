@@ -1,58 +1,19 @@
-import config from "config";
-import express, { Application } from "express";
 import { getLogger } from "./core/logging";
-
-import { installErrorHandlers, installMiddlewares } from "./core/installMiddleware";
 import { initializeData, shutdownData } from "./data";
-import installRest from "./rest";
-
-const PORT = config.get<number>("port");
-
-export interface Server {
-  getApp(): Application;
-  start(): Promise<void>;
-  stop(): Promise<void>;
-}
-
-export async function createServer(): Promise<Server> {
-  const app = express();
-
-  installMiddlewares(app);
-  await initializeData();
-  installRest(app);
-  installErrorHandlers(app);
-
-  return {
-    getApp() {
-      return app;
-    },
-
-    start() {
-      return new Promise((resolve) => {
-        app.listen(PORT, () => {
-          getLogger().info(`Express listening on http://localhost:${PORT}`);
-          resolve();
-        });
-      });
-    },
-
-    async stop() {
-      await shutdownData();
-      getLogger().info("Goodbye! 👋");
-    },
-  };
-}
+import { createServer } from "./server";
 
 async function main() {
   try {
+    await initializeData();
     const server = await createServer();
     await server.start();
-    
+      
     async function onClose() {
-      await server.stop();
+      await shutdownData();
+      getLogger().info("Goodbye! 👋");
       process.exit(0);
     }
-
+  
     process.on("SIGTERM", onClose);
     process.on("SIGQUIT", onClose);
   } catch (error) {
@@ -60,9 +21,9 @@ async function main() {
     process.exit(-1);
   }
 }
-
+  
 main();
-
+  
 // TODO: useraccount creation /useraccount not /users
 // TODO: useraccount deletion deletes account
 // TODO: what happens in other services when an user account gets deleted?

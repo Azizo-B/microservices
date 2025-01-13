@@ -1,6 +1,7 @@
 {
   "env": "NODE_ENV",
   "port": "PORT",
+  "server_url": "SERVER_URL",
   "auth": {
     "jwt": {
       "secret": "AUTH_JWT_SECRET"

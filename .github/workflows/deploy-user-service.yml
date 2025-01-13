@@ -35,14 +35,14 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          IMAGE="gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.SERVICE_NAME }}"
+          IMAGE="gcr.io/${{ secrets.GCP_PROJECT_ID }}/user-service"
           docker build -t $IMAGE ./user-service 
           docker push $IMAGE
 
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy ${{ secrets.SERVICE_NAME }} \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.SERVICE_NAME }} \
+          gcloud run deploy user-service \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/user-service \
             --platform managed \
             --region ${{ secrets.GCP_REGION }} \
             --allow-unauthenticated

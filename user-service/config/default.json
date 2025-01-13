@@ -1,5 +1,6 @@
 {
   "port": 9000,
+  "server_url": "http://localhost:9000",
   "log": {
     "level": "silly",
     "disabled": false

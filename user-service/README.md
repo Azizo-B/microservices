@@ -84,7 +84,7 @@ This service streamlines user management by offering clear authentication, autho
 
 To run the tests, follow these steps:
 
-1. Ensure that your test database and node_env is set up and configured in the `.env.test` file.
+1. Ensure that your node_env is set to 'testing' in the `.env.test` file.
 
 2. Run the tests using the following command:
 

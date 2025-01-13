@@ -1,9 +1,14 @@
 import config from "config";
-const PORT = config.get<number>("port");
+const SERVER_URL = config.get<string>("server_url");
+const NODE_ENV = config.get<string>("env");
 
+const apis = ["./src/docs/*"];
+if(NODE_ENV === "production"){
+  apis.push("./dist/src/docs/*");
+}
 export default {
   failOnErrors: true,
-  apis: ["./src/docs/*.ts"],
+  apis,
   definition: {
     openapi: "3.0.0",
     info: {
@@ -11,6 +16,6 @@ export default {
       version: "1.0.0",
       description: "User service API documentation",
     },
-    servers: [{ url: `http://localhost:${PORT}/` }],
+    servers: [{ url:  SERVER_URL }],
   },
 };
