@@ -64,6 +64,7 @@ async function main() {
     "userservice:assign:any:permission",
     "userservice:remove:any:permission",
     "userservice:list:any:user",
+    "userservice:read:any:user",
     "userservice:update:any:user",
     "userservice:read:any:profile",
     "userservice:update:any:profile",

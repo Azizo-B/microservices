@@ -29,6 +29,7 @@ export enum AccountStatus {
   BANNED = "banned",
 }
 export interface UserUpdateInput {
+  username: string,
   isVerified: boolean
   status: AccountStatus
 }

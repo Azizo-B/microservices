@@ -45,4 +45,4 @@ EXPOSE $PORT
 ENV NODE_ENV=production
 
 # Run the application
-CMD ["sh", "-c", "npx prisma db push && npm start"]
+CMD ["npm", "start"]

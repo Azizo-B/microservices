@@ -29,8 +29,8 @@ createUser.validationSchema = {
 };
 async function verifyEmail(req: Request<{}, {}, {token:string}>, res: Response, next: NextFunction) {
   try {
-    const token = await userService.verifyEmail(req.body.token);
-    req.userId = token.userId;
+    const { userId } = await userService.verifyEmail(req.body.token);
+    req.userId = userId;
     await createDevice(req);
     res.send();
   } catch (error) {
@@ -43,8 +43,8 @@ async function resetPassword(
   req: Request<{}, {}, {token:string, newPassword: string}>, res: Response, next: NextFunction,
 ) {
   try {
-    const token = await userService.resetPassword(req.body.token, req.body.newPassword);
-    req.userId = token.userId;
+    const { userId } = await userService.resetPassword(req.body.token, req.body.newPassword);
+    req.userId = userId;
     await createDevice(req);
     res.send();
   } catch (error) {
@@ -90,8 +90,9 @@ async function updateUserById(
 updateUserById.validationSchema = { 
   params: { id: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")) }, 
   body: { 
-    isVerified: Joi.boolean(), 
-    status: Joi.string().valid(AccountStatus.ACTIVE, AccountStatus.INACTIVE, AccountStatus.BANNED),
+    isVerified: Joi.boolean().optional(), 
+    username: Joi.string().optional(), 
+    status: Joi.string().valid(AccountStatus.ACTIVE, AccountStatus.INACTIVE, AccountStatus.BANNED).optional(),
   },
 };
 

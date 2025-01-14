@@ -41,6 +41,8 @@ model UserRole {
 
   user User @relation("UserRoles", fields: [userId], references: [id])
   role Role @relation("UserRoleToRole", fields: [roleId], references: [id])
+
+  @@unique([userId, roleId], name: "idx_unique_roles_on_user")
 }
 
 model Role {

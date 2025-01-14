@@ -82,12 +82,8 @@ export async function assignPermissionToRole(roleId: string, permissionId: strin
 
     await prisma.rolePermission.create({ 
       data: { 
-        role:{ 
-          connect: { id: roleId }, 
-        }, 
-        permission:{
-          connect:{ id: permissionId },
-        }, 
+        role:{ connect: { id: roleId } }, 
+        permission:{ connect:{ id: permissionId } }, 
       }, 
     });
   } catch (error) {
