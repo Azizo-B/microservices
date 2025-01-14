@@ -3,7 +3,7 @@
   "name": "user-service",
   "description": "User microservice",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/src/index.js",
   "prisma": {
     "schema": "src/data/schema.prisma",
     "seed": "tsx ./src/data/seed.ts"

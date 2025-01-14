@@ -43,16 +43,22 @@ export const createDevice = async (req: Request) => {
     const userAgent = req.headers["user-agent"] || "Unknown";    
     const parser = new UAParser(userAgent);
     const parsedUA = parser.getResult();
+    
+    let device = await prisma.device.findFirst({
+      where: {
+        userId: req.userId,
+        userAgent: userAgent,
+      },
+      select: { id: true },
+    });
 
     // Extract IPs from headers and request
-    const xForwardedFor = req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim();
-    const xRealIp = req.headers["x-real-ip"]?.toString();
     const GcpRemoteIp = req.headers["remoteIp"]?.toString();
     const reqIp = req.ip;
     const remoteAddress = req.connection.remoteAddress;
 
     // Aggregate potential IPs
-    const ipCandidates = [xForwardedFor, xRealIp, GcpRemoteIp, reqIp, remoteAddress];
+    const ipCandidates = [GcpRemoteIp, reqIp, remoteAddress];
 
     let geo = null;
     let ipAddress = "Unknown";
@@ -64,6 +70,11 @@ export const createDevice = async (req: Request) => {
           break;
         }
       }
+    }
+
+    if (device) {
+      await prisma.ip.create({data: { ipAddress, device:{ connect: { id: device.id } } }});
+      return  device.id;
     }
     
     const deviceInfo = {
@@ -86,39 +97,17 @@ export const createDevice = async (req: Request) => {
       timestamp: new Date().toISOString(),
     };
     
-    let device = await prisma.device.findFirst({
-      where: {
-        userId: req.userId,
+    device = await prisma.device.create({
+      data: {
         userAgent: userAgent,
+        ipAddress,
+        ...deviceInfo,
+        user:{ connect:{ id: req.userId } },
       },
     });
-    
-    if (!device) {
-      device = await prisma.device.create({
-        data: {
-          userAgent: userAgent,
-          ipAddress,
-          ...deviceInfo,
-          user:{
-            connect:{
-              id: req.userId,
-            },
-          },
-        },
-      });
-    
-      await prisma.ip.create({
-        data: {
-          ipAddress,
-          device:{
-            connect:{
-              id: device.id,
-            },
-          },
-        },
-      });
-    }
-    
+
+    await prisma.ip.create({data: { ipAddress, device:{ connect: { id: device.id } } }});
+
     return device.id;
   }catch(error){
     handleDBError(error);

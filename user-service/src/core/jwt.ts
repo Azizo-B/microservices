@@ -17,9 +17,8 @@ const asyncJwtSign = util.promisify<JwtPayload, Secret, SignOptions, string>(jwt
 const asyncJwtVerify = util.promisify<string, Secret, VerifyOptions, JwtPayload>(jwt.verify);
 
 export const generateJWT = async (
-  userId: string, roles: string[], permissions: string[], tokenId:string,
+  userId: string, tokenId:string,
 ): Promise<string> => {
-  const tokenData = { roles, permissions };
 
   const signOptions = {
     expiresIn: JWT_EXPIRATION_INTERVAL,
@@ -29,7 +28,7 @@ export const generateJWT = async (
     jwtid: tokenId,
   };
 
-  return asyncJwtSign(tokenData, JWT_SECRET, signOptions);
+  return asyncJwtSign({}, JWT_SECRET, signOptions);
 };
 
 export const verifyJWT = async (authToken: string): Promise<JwtPayload> => {

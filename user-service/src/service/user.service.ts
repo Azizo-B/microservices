@@ -313,13 +313,11 @@ export async function resetPassword(token: string, newPassword: string): Promise
 };
 
 export async function getUserRolesAndPermissions(id: string) {
-  const user = await prisma.user.findUnique({ 
-    where: { id }, 
-    include: { 
-      roles: { 
-        include: { role: { include: { rolePermission: {include: { permission: true } } } } }, 
-      }, 
-    }, 
+  const user =  await prisma.user.findUnique({
+    where: { id },
+    select: { roles: { select: { role: { select: 
+      { name: true, rolePermission: { select: { permission: { select: { name: true } } } } }, 
+    }}}},
   });
 
   if (!user) {

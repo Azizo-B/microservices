@@ -5,14 +5,12 @@ import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
 import { CreateTokenInput, TokenWithStatus } from "../types/token.types";
 import handleDBError from "./_handleDBError";
-import { checkPermission, getUserRolesAndPermissions } from "./user.service";
+import { checkPermission } from "./user.service";
 
 const JWT_EXPIRATION_INTERVAL = config.get<number>("auth.jwt.expirationInterval");
 
 export async function createToken(userId: string, createTokenInput: CreateTokenInput): Promise<Token> {
   try{
-    const {roles, permissions} = await getUserRolesAndPermissions(userId);
-
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
@@ -30,7 +28,7 @@ export async function createToken(userId: string, createTokenInput: CreateTokenI
       },
     });
 
-    const tokenString = await generateJWT(user.id, roles, permissions, tokenRecord.id);
+    const tokenString = await generateJWT(user.id, tokenRecord.id);
 
     await prisma.token.update({
       where: { id: tokenRecord.id },
