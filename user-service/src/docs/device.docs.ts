@@ -8,6 +8,23 @@
  *       - Device
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         description: The page number for paginated results. Defaults to `1`.
+ *         required: false
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *         description: The number of items to return per page. Defaults to `10`.
+ *         required: false
  *     responses:
  *       200:
  *         description: Devices retrieved successfully

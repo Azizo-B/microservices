@@ -3,8 +3,11 @@
  * tags:
  *   - name: User Authentication
  *   - name: User
- *   - name: User Profile
  *   - name: Token
+ *   - name: User Profile
+ *   - name: Device
+ *   - name: Permission
+ *   - name: Role
  *   - name: Application
  * components:
  *   securitySchemes:

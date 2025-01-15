@@ -2,6 +2,7 @@ import { Application } from "@prisma/client";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
 import { CreateApplicationInput, UpdateApplicationInput } from "../types/application.types";
+import { PaginationParams } from "../types/common.types";
 import handleDBError from "./_handleDBError";
 
 export async function createApplication(createAppInput: CreateApplicationInput): Promise<Application> {
@@ -12,9 +13,11 @@ export async function createApplication(createAppInput: CreateApplicationInput):
   }
 }
 
-export async function getAllApplications(): Promise<Application[]> {
-  const applications = await prisma.application.findMany();
-  return applications;
+export async function getAllApplications(filters: PaginationParams): Promise<Application[]> {
+  const { page = 1, limit = 10, ...remainingFilters } = filters;
+  const skip = (page - 1) * limit;
+  
+  return await prisma.application.findMany({where:{...remainingFilters}, skip, take: limit});
 }
 
 export async function getApplicationById(id: string): Promise<Application> {

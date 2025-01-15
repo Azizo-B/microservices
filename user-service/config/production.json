@@ -3,5 +3,8 @@
     "jwt": {
       "expirationInterval": 604800
     }
+  },
+  "pagination": {
+    "maxLimit": 100
   }
 }

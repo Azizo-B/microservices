@@ -18,11 +18,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *                   description: jwt token.
+ *               $ref: '#/components/schemas/Token'
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       401:
@@ -72,6 +68,42 @@
  *     description: Fetches all tokens associated with the authenticated user.
  *     tags:
  *       - Token
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         description: The page number for paginated results. Defaults to `1`.
+ *         required: false
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *         description: The number of items to return per page. Defaults to `10`.
+ *         required: false
+ *       - in: query
+ *         name: appId
+ *         schema:
+ *           type: string
+ *         description: Filters tokens by their application ID.
+ *         required: false
+ *       - in: query
+ *         name: deviceId
+ *         schema:
+ *           type: string
+ *         description: Filters tokens by their device ID.
+ *         required: false
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [session, reset_password, email_verification]
+ *         description: Filters tokens by their type.
+ *         required: false
  *     responses:
  *       200:
  *         description: Tokens retrieved successfully

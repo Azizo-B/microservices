@@ -1,7 +1,9 @@
 import { Permission } from "@prisma/client";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
-import { CreatePermissionInput, UpdatePermissionInput } from "../types/permission.types";
+import {
+  CreatePermissionInput, PermissionFiltersWithPagination, UpdatePermissionInput,
+} from "../types/permission.types";
 import handleDBError from "./_handleDBError";
 
 export async function createPermission(createPermissionInput: CreatePermissionInput): Promise<Permission> {
@@ -17,9 +19,19 @@ export async function createPermission(createPermissionInput: CreatePermissionIn
   }
 }
 
-export async function getAllPermissions(): Promise<Permission[]> {
-  const permissions = await prisma.permission.findMany();
-  return permissions;
+export async function getAllPermissions(filters: PermissionFiltersWithPagination): Promise<Permission[]> {
+  const { userId, name, page = 1, limit = 10 } = filters;
+
+  const skip = (page - 1) * limit;
+
+  return await prisma.permission.findMany({ 
+    where:{
+      ...(name && { name: name}),
+      ...(userId && { rolePermissions: { some: { role: { userRoles: { some: { userId } } } } } }),
+    },
+    skip,
+    take: limit,
+  });
 }
 
 export async function getPermissionById(id: string): Promise<Permission> {

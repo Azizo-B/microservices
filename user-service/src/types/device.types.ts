@@ -1,4 +1,5 @@
 import { Device } from "@prisma/client";
+import { PaginationParams } from "./common.types";
 
 export interface BasicDeviceInfo{
   id: string;
@@ -13,4 +14,8 @@ export interface BasicDeviceInfo{
 
 export interface DeviceAndIps extends Device {
   ips: string[]
+}
+
+export interface DeviceFiltersWithPagination extends PaginationParams {
+  userId?: string
 }

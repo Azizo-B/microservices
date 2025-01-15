@@ -1,15 +1,20 @@
+import { JsonValue } from "@prisma/client/runtime/library";
 import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import Joi from "joi";
 import { authDelay, requireAuthentication, requirePermission } from "../core/auth";
 import { collectDeviceInfo } from "../core/collectDeviceInfo";
-import validate, { objectIdValidation } from "../core/validation";
+import validate, { objectIdValidation, paginationParamsValidation } from "../core/validation";
 import { createDevice } from "../service/device.service";
 import * as userService from "../service/user.service";
 import { EntityId, ListResponse } from "../types/common.types";
-import { AccountStatus, GetUserByIdResponse, PublicUser, UserSignupInput, UserUpdateInput } from "../types/user.types";
+import {
+  AccountStatus, GetUserByIdResponse,
+  PublicUser, ResetPasswordBody, UserFiltersWithPagination, UserRoleParams, UserSignupInput, UserUpdateInput,
+  VerifyEmailBody,
+} from "../types/user.types";
 
-async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response, next: NextFunction) {
+async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response<PublicUser>, next: NextFunction) {
   try {
     const user = await userService.createUser(req.body);
     req.userId = user.id;
@@ -27,9 +32,9 @@ createUser.validationSchema = {
     password: Joi.string(),
   },
 };
-async function verifyEmail(req: Request<{}, {}, {token:string}>, res: Response, next: NextFunction) {
+async function verifyEmail(req: Request<{}, {}, VerifyEmailBody>, res: Response<void>, next: NextFunction) {
   try {
-    const { userId } = await userService.verifyEmail(req.body.token);
+    const { userId } = await userService.markEmailAsVerified(req.body.token);
     req.userId = userId;
     await createDevice(req);
     res.send();
@@ -39,29 +44,38 @@ async function verifyEmail(req: Request<{}, {}, {token:string}>, res: Response, 
 }
 verifyEmail.validationSchema = { body: { token: Joi.string() } };
 
-async function resetPassword(
-  req: Request<{}, {}, {token:string, newPassword: string}>, res: Response, next: NextFunction,
-) {
+async function resetPassword(req: Request<{}, {}, ResetPasswordBody>, res: Response<void>, next: NextFunction) {
   try {
-    const { userId } = await userService.resetPassword(req.body.token, req.body.newPassword);
+    const { userId } = await userService.updatePassword(req.body.token, req.body.newPassword);
     req.userId = userId;
     await createDevice(req);
-    res.send();
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
 }
 resetPassword.validationSchema = { body: { token: Joi.string(),  newPassword: Joi.string()} };
 
-async function getAllUsers(_: Request, res: Response<ListResponse<PublicUser>>, next: NextFunction) {
+async function getAllUsers(
+  req: Request<{}, {}, {}, UserFiltersWithPagination>, res: Response<ListResponse<PublicUser>>, next: NextFunction,
+) {
   try {
-    const users = await userService.getAllUsers();
+    const users = await userService.getAllUsers(req.query);
     res.send({items: users});
   } catch (error) {
     next(error);
   }
 }
-getAllUsers.validationSchema = null;
+getAllUsers.validationSchema = {
+  query: {
+    appId: objectIdValidation.optional(),
+    username: Joi.string().optional(),
+    email: Joi.string().optional(),
+    status: Joi.string().optional(),
+    isVerified: Joi.boolean().optional(),
+    ...paginationParamsValidation,
+  },
+};
 
 async function getUserById(req: Request<EntityId>, res: Response<GetUserByIdResponse>, next: NextFunction) {
   try {
@@ -78,7 +92,7 @@ getUserById.validationSchema = {
 };
 
 async function updateUserById(
-  req: Request<EntityId, {}, UserUpdateInput>, res: Response, next: NextFunction,
+  req: Request<EntityId, {}, UserUpdateInput>, res: Response<PublicUser>, next: NextFunction,
 ) {
   try {
     const updatedUser = await userService.updateUserById(req.params.id, req.body);
@@ -96,7 +110,7 @@ updateUserById.validationSchema = {
   },
 };
 
-async function getUserProfile(req: Request<EntityId>, res: Response, next: NextFunction) {
+async function getUserProfile(req: Request<EntityId>, res: Response<JsonValue>, next: NextFunction) {
   try {
     const userProfile = await userService.getUserProfile(req.params.id, req.userId);
     res.send(userProfile);
@@ -108,7 +122,7 @@ getUserProfile.validationSchema = {
   params: { id: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")) }, 
 };
 
-async function updateUserProfile(req: Request<EntityId, {}, any>, res: Response, next: NextFunction) {
+async function updateUserProfile(req: Request<EntityId, {}, any>, res: Response<JsonValue>, next: NextFunction) {
   try {
     const updatedProfile = await userService.updateUserProfile(req.params.id, req.body, req.userId);
     res.send(updatedProfile);
@@ -121,7 +135,7 @@ updateUserProfile.validationSchema = {
   body: Joi.optional(),
 };
 
-async function linkRoleToUser(req: Request<{userId: string, roleId: string}>, res: Response, next: NextFunction) {
+async function linkRoleToUser(req: Request<UserRoleParams>, res: Response<void>, next: NextFunction) {
   try {
     await userService.linkRoleToUser(req.params.userId, req.params.roleId);
     res.status(204).send();
@@ -133,7 +147,9 @@ linkRoleToUser.validationSchema = {
   params: { userId: Joi.alternatives().try(objectIdValidation, Joi.string().valid("me")), roleId: objectIdValidation },
 };
 
-async function unlinkRoleFromUser(req: Request<{userId: string, roleId: string}>, res: Response, next: NextFunction) {
+async function unlinkRoleFromUser(
+  req: Request<UserRoleParams>, res: Response<void>, next: NextFunction,
+) {
   try {
     await userService.unlinkRoleFromUser(req.params.userId, req.params.roleId);
     res.status(204).send();

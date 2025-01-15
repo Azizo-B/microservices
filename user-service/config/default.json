@@ -20,5 +20,10 @@
       "audience": "all",
       "issuer": "user-service"
     }
+  },
+  "pagination": {
+    "defaultPage": 1,
+    "defaultLimit": 10,
+    "maxLimit": 200
   }
 }

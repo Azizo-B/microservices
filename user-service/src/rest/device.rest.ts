@@ -3,21 +3,28 @@ import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import { requireAuthentication } from "../core/auth";
 import { collectDeviceInfo } from "../core/collectDeviceInfo";
-import validate, { objectIdValidation } from "../core/validation";
+import validate, { objectIdValidation, paginationParamsValidation } from "../core/validation";
 import * as deviceService from "../service/device.service";
 import { EntityId, ListResponse } from "../types/common.types";
-import { DeviceAndIps } from "../types/device.types";
+import { DeviceAndIps, DeviceFiltersWithPagination } from "../types/device.types";
 
-async function getAllDevices(req: Request, res: Response<ListResponse<Device>>, next: NextFunction) {
+async function getAllDevices(
+  req: Request<{}, {}, {}, DeviceFiltersWithPagination>, res: Response<ListResponse<Device>>, next: NextFunction,
+) {
   try{
-    const devices = await deviceService.getAllDevices(req.userId);
+    const devices = await deviceService.getAllDevices(req.userId, req.query);
     res.send({items: devices});
   } catch(error){
     next(error);
   }
 
 }
-getAllDevices.validationSchema = null;
+getAllDevices.validationSchema = {
+  query: {
+    userId: objectIdValidation.optional(),
+    ...paginationParamsValidation,
+  },
+};
 
 async function getDeviceById(req: Request<EntityId>, res: Response<DeviceAndIps>, next: NextFunction) {
   try{

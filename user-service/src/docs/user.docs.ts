@@ -98,6 +98,54 @@
  *     description: Fetches a list of all users.
  *     tags:
  *       - User
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         description: The page number for paginated results. Defaults to `1`.
+ *         required: false
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *         description: The number of items to return per page. Defaults to `10`.
+ *         required: false
+ *       - in: query
+ *         name: appId
+ *         schema:
+ *           type: string
+ *         description: Filters users by their application ID.
+ *         required: false
+ *       - in: query
+ *         name: username
+ *         schema:
+ *           type: string
+ *         description: Filters users by their username (case-insensitive partial match).
+ *         required: false
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: Filters users by their email (case-insensitive partial match).
+ *         required: false
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive, banned]
+ *         description: Filters users by their status.
+ *         required: false
+ *       - in: query
+ *         name: isVerified
+ *         schema:
+ *           type: boolean
+ *         description: Filters users by their verification status (true for verified, false for unverified).
+ *         required: false
  *     responses:
  *       200:
  *         description: A list of users

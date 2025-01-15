@@ -39,6 +39,35 @@
  *     description: Fetches all permissions available in the system.
  *     tags:
  *       - Permission
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         description: The page number for paginated results. Defaults to `1`.
+ *         required: false
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *         description: The number of items to return per page. Defaults to `10`.
+ *         required: false
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: Filters permissions by the ID of the user associated with them.
+ *         required: false
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filters permissions by their name.
+ *         required: false
  *     responses:
  *       200:
  *         description: Permissions retrieved successfully

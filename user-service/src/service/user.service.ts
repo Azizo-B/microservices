@@ -1,14 +1,16 @@
-import { User } from "@prisma/client";
+import { Token, User } from "@prisma/client";
+import { JsonValue } from "@prisma/client/runtime/library";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { verifyJWT } from "../core/jwt";
 import { getLogger } from "../core/logging";
 import { hashPassword, verifyPassword } from "../core/password";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
-import { TokenType } from "../types/token.types";
+import { TokenIdentifiers, TokenType } from "../types/token.types";
 import {
   AccountStatus, GetUserByIdResponse,
   PublicUser,
+  UserFiltersWithPagination,
   UserLoginInput, UserSignupInput, UserUpdateInput,
 } from "../types/user.types";
 import handleDBError from "./_handleDBError";
@@ -49,7 +51,7 @@ export async function createUser(userSignupInput: UserSignupInput): Promise<Publ
 }
 
 // TODO : restrict deleted account / "inactive"
-export const login = async (userLoginInput: UserLoginInput, deviceId?: string) => {
+export async function login(userLoginInput: UserLoginInput, deviceId?: string): Promise<Token> {
   const user = await prisma.user.findUnique({
     where: { 
       idx_unique_user_email_app_account:{ email: userLoginInput.email, appId: userLoginInput.appId },
@@ -131,10 +133,15 @@ export async function checkPermission(permission: string, userId: string): Promi
   return permissions.includes(permission);
 };
 
-export async function getAllUsers(): Promise<PublicUser[]> {
-  const users = await prisma.user.findMany();
-  const publicUsers = users.map((u)=> makePublicUser(u));
-  return publicUsers;
+export async function getAllUsers(filters: UserFiltersWithPagination): Promise<PublicUser[]> {
+  const { page = 1, limit = 10, ...remainingFilters } = filters;
+  const skip = (page - 1) * limit;
+  
+  const users = await prisma.user.findMany({
+    where: {...remainingFilters},
+    skip, take: limit,
+  });
+  return users.map((u)=> makePublicUser(u));
 }
 
 export async function getUserById(id: string, requestingUserId: string): Promise<GetUserByIdResponse> {
@@ -189,8 +196,8 @@ export async function getUserById(id: string, requestingUserId: string): Promise
   } as GetUserByIdResponse;
 }
 
-export function updateUserById(id: string, userUpdateInput: UserUpdateInput) {
-  return prisma.user.update({ where: { id }, data: { ...userUpdateInput } });
+export async function updateUserById(id: string, userUpdateInput: UserUpdateInput): Promise<PublicUser> {
+  return makePublicUser(await prisma.user.update({ where: { id }, data: { ...userUpdateInput } }));
 }
 
 export async function getUserProfile(id: string, requestingUserId: string) {
@@ -209,7 +216,7 @@ export async function getUserProfile(id: string, requestingUserId: string) {
   return user.profile;
 }
 
-export async function updateUserProfile(id: string, profile: any, requestingUserId: string): Promise<User> {
+export async function updateUserProfile(id: string, profile: any, requestingUserId: string): Promise<JsonValue> {
   id = id === "me" ? requestingUserId : id;
 
   if (id !== requestingUserId && ! await checkPermission("userservice:update:any:profile", requestingUserId)) {
@@ -218,10 +225,10 @@ export async function updateUserProfile(id: string, profile: any, requestingUser
 
   const user = await prisma.user.update({ where: { id }, data: { profile } });
 
-  return user;
+  return user.profile;
 }
 
-export async function linkRoleToUser(userId: string, roleId: string) {
+export async function linkRoleToUser(userId: string, roleId: string): Promise<void> {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -244,7 +251,7 @@ export async function linkRoleToUser(userId: string, roleId: string) {
   }
 }
 
-export async function unlinkRoleFromUser(userId: string, roleId: string) {
+export async function unlinkRoleFromUser(userId: string, roleId: string): Promise<void> {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -259,7 +266,7 @@ export async function unlinkRoleFromUser(userId: string, roleId: string) {
   }
 }
 
-export async function validateToken(token: string): Promise<{userId: string, jwtid: string}>{
+export async function validateAndRevokeToken(token: string): Promise<TokenIdentifiers>{
   try {
     const { sub, jwtid } = await verifyJWT(token);
 
@@ -291,9 +298,9 @@ export async function validateToken(token: string): Promise<{userId: string, jwt
   }
 };
 
-export async function verifyEmail(token: string): Promise<{userId: string, jwtid: string}> {
+export async function markEmailAsVerified(token: string): Promise<TokenIdentifiers> {
   try {
-    const tokenInfo = await validateToken(token);
+    const tokenInfo = await validateAndRevokeToken(token);
     await prisma.user.update({ where: { id: tokenInfo.userId }, data: { isVerified: true } });
     return tokenInfo;
   } catch (error: any) {
@@ -301,9 +308,9 @@ export async function verifyEmail(token: string): Promise<{userId: string, jwtid
   }
 };
 
-export async function resetPassword(token: string, newPassword: string): Promise<{userId: string, jwtid: string}> {
+export async function updatePassword(token: string, newPassword: string): Promise<TokenIdentifiers> {
   try {
-    const tokenInfo = await validateToken(token);
+    const tokenInfo = await validateAndRevokeToken(token);
     const newPasswordHash = await hashPassword(newPassword);
     await prisma.user.update({ where: { id: tokenInfo.userId }, data: { passwordHash: newPasswordHash } });
     return tokenInfo;

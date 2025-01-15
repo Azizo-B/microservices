@@ -4,9 +4,9 @@ import { Router } from "express";
 import Joi from "joi";
 import { requireAuthentication, requirePermission } from "../core/auth";
 import { collectDeviceInfo } from "../core/collectDeviceInfo";
-import validate, { objectIdValidation } from "../core/validation";
+import validate, { objectIdValidation, paginationParamsValidation } from "../core/validation";
 import * as roleService from "../service/role.service";
-import { EntityId, ListResponse } from "../types/common.types";
+import { EntityId, ListResponse, PaginationParams } from "../types/common.types";
 import {
   CreateRoleInput,
   UpdateRoleInput,
@@ -24,15 +24,17 @@ async function createRole(
 }
 createRole.validationSchema = {body: {name: Joi.string().required(), description: Joi.string().optional()}};
 
-async function getAllRoles(_: Request, res: Response<ListResponse<Role>>, next: NextFunction) {
+async function getAllRoles(
+  req: Request<{}, {}, {}, PaginationParams>, res: Response<ListResponse<Role>>, next: NextFunction,
+) {
   try{
-    const roles = await roleService.getAllRoles();
+    const roles = await roleService.getAllRoles(req.query);
     res.send({items: roles});
   } catch(error){
     next(error);
   }
 }
-getAllRoles.validationSchema = null;
+getAllRoles.validationSchema = {query: paginationParamsValidation};
 
 async function getRoleById(req: Request<EntityId>, res: Response<Role>, next: NextFunction) {
   try{

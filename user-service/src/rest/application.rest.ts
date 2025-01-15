@@ -3,13 +3,13 @@ import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import Joi from "joi";
 import { requireAuthentication, requirePermission } from "../core/auth";
-import validate, { objectIdValidation } from "../core/validation";
+import validate, { objectIdValidation, paginationParamsValidation } from "../core/validation";
 import * as applicationService from "../service/application.service";
 import {
   CreateApplicationInput,
   UpdateApplicationInput,
 } from "../types/application.types";
-import { EntityId, ListResponse } from "../types/common.types";
+import { EntityId, ListResponse, PaginationParams } from "../types/common.types";
 
 async function createApplication(
   req: Request<{}, {}, CreateApplicationInput>, res: Response<Application>, next: NextFunction,
@@ -23,16 +23,22 @@ async function createApplication(
 }
 createApplication.validationSchema = {body: {name: Joi.string()}};
 
-async function getAllApplications(_: Request, res: Response<ListResponse<Application>>, next: NextFunction) {
+async function getAllApplications(
+  req: Request<{}, {}, {}, PaginationParams>, res: Response<ListResponse<Application>>, next: NextFunction,
+) {
   try{
-    const applications = await applicationService.getAllApplications();
+    const applications = await applicationService.getAllApplications(req.query);
     res.send({items: applications});
   } catch(error){
     next(error);
   }
 
 }
-getAllApplications.validationSchema = null;
+getAllApplications.validationSchema = {
+  query: {
+    ...paginationParamsValidation,
+  },
+};
 
 async function getApplicationById(req: Request<EntityId>, res: Response<Application>, next: NextFunction) {
   try{

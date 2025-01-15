@@ -3,7 +3,7 @@ import config from "config";
 import { generateJWT } from "../core/jwt";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
-import { CreateTokenInput, TokenWithStatus } from "../types/token.types";
+import { CreateTokenInput, TokenFiltersWithPagination, TokenWithStatus } from "../types/token.types";
 import handleDBError from "./_handleDBError";
 import { checkPermission } from "./user.service";
 
@@ -43,15 +43,17 @@ export async function createToken(userId: string, createTokenInput: CreateTokenI
   }
 }
 
-export async function getAllTokens(userId: string): Promise<Token[]> {
+export async function getAllTokens(userId: string, filters: TokenFiltersWithPagination): Promise<Token[]> {
+  const { page = 1, limit = 10, ...remainingFilters } = filters;
+  const skip = (page - 1) * limit;
+  const filter: any = {where:{...remainingFilters}, skip, take: limit};
+  
   const hasPermission = await checkPermission("userservice:list:any:token", userId);
-
-  let filter = {};
   if(!hasPermission){
-    filter = { where:{ userId } };
+    filter.where.userId = userId;
   }
-  const tokens = await prisma.token.findMany(filter);
-  return tokens;
+
+  return await prisma.token.findMany(filter);
 }
 
 // TODO: remove appid from response
@@ -104,9 +106,6 @@ export async function deleteToken(userId: string, tokenId: string): Promise<void
   }
 }
 
-export async function linkTokenToDevice(tokenId: string, deviceId: string) {
-  return await prisma.token.update({
-    where: { id: tokenId },
-    data: { device: { connect: {id: deviceId } } },
-  });
+export async function linkTokenToDevice(tokenId: string, deviceId: string): Promise<void> {
+  await prisma.token.update({where: { id: tokenId }, data: { device: { connect: {id: deviceId }}}});
 }

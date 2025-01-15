@@ -4,20 +4,21 @@ import geoip from "geoip-lite";
 import { UAParser } from "ua-parser-js";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
-import { DeviceAndIps } from "../types/device.types";
+import { DeviceAndIps, DeviceFiltersWithPagination } from "../types/device.types";
 import handleDBError from "./_handleDBError";
 import { checkPermission } from "./user.service";
 
-export async function getAllDevices(userId: string): Promise<Device[]> {
+export async function getAllDevices(userId: string, filters: DeviceFiltersWithPagination): Promise<Device[]> {
+  const { page = 1, limit = 10, ...remainingFilters } = filters;
+  const skip = (page - 1) * limit;
+  const filter: any = {where:{...remainingFilters}, skip, take: limit};
+  
   const hasPermission = await checkPermission("userservice:list:any:device", userId);
-
-  let filter = {};
   if(!hasPermission){
-    filter = {where: {userId}};
+    filter.where.userId = userId;
   }
 
-  const devices = await prisma.device.findMany(filter);
-  return devices;
+  return await prisma.device.findMany(filter);
 }
 
 export async function getDeviceById(id: string, userId: string): Promise<DeviceAndIps> {
@@ -38,7 +39,7 @@ export async function getDeviceById(id: string, userId: string): Promise<DeviceA
   return {...device, ips};
 }
 
-export const createDevice = async (req: Request) => {
+export async function createDevice(req: Request): Promise<string> {
   try{
     const userAgent = req.headers["user-agent"] || "Unknown";    
     const parser = new UAParser(userAgent);
@@ -52,12 +53,10 @@ export const createDevice = async (req: Request) => {
       select: { id: true },
     });
 
-    // Extract IPs from headers and request
     const GcpRemoteIp = req.headers["remoteIp"]?.toString();
     const reqIp = req.ip;
     const remoteAddress = req.connection.remoteAddress;
 
-    // Aggregate potential IPs
     const ipCandidates = [GcpRemoteIp, reqIp, remoteAddress];
 
     let geo = null;
@@ -72,7 +71,7 @@ export const createDevice = async (req: Request) => {
       }
     }
 
-    if (device) {
+    if (device && ipAddress !== "Unknown") {
       await prisma.ip.create({data: { ipAddress, device:{ connect: { id: device.id } } }});
       return  device.id;
     }
@@ -106,7 +105,9 @@ export const createDevice = async (req: Request) => {
       },
     });
 
-    await prisma.ip.create({data: { ipAddress, device:{ connect: { id: device.id } } }});
+    if (ipAddress !== "Unknown"){
+      await prisma.ip.create({data: { ipAddress, device:{ connect: { id: device.id } } }});
+    }
 
     return device.id;
   }catch(error){

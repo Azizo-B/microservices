@@ -3,11 +3,12 @@ import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import Joi from "joi";
 import { requireAuthentication, requirePermission } from "../core/auth";
-import validate, { objectIdValidation } from "../core/validation";
+import validate, { objectIdValidation, paginationParamsValidation } from "../core/validation";
 import * as permissionService from "../service/permission.service";
 import { EntityId, ListResponse } from "../types/common.types";
 import {
   CreatePermissionInput,
+  PermissionFiltersWithPagination,
   UpdatePermissionInput,
 } from "../types/permission.types";
 
@@ -23,15 +24,21 @@ async function createPermission(
 }
 createPermission.validationSchema = {body: {name: Joi.string().required(), description: Joi.string().optional()}};
 
-async function getAllPermissions(_: Request, res: Response<ListResponse<Permission>>, next: NextFunction) {
+async function getAllPermissions(
+  req: Request<{}, {}, {}, PermissionFiltersWithPagination>, 
+  res: Response<ListResponse<Permission>>, 
+  next: NextFunction,
+) {
   try{
-    const permissions = await permissionService.getAllPermissions();
+    const permissions = await permissionService.getAllPermissions(req.query);
     res.send({items: permissions});
   } catch(error){
     next(error);
   }
 }
-getAllPermissions.validationSchema = null;
+getAllPermissions.validationSchema = {
+  query: {name: Joi.string().optional(), userId: objectIdValidation.optional(), ...paginationParamsValidation},
+};
 
 async function getPermissionById(req: Request<EntityId>, res: Response<Permission>, next: NextFunction) {
   try{

@@ -1,6 +1,7 @@
 import { Role } from "@prisma/client";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
+import { PaginationParams } from "../types/common.types";
 import { CreateRoleInput, RoleWithPermissions, UpdateRoleInput } from "../types/role.types";
 import handleDBError from "./_handleDBError";
 
@@ -17,10 +18,11 @@ export async function createRole(createRoleInput: CreateRoleInput): Promise<Role
   }
 }
 
-export async function getAllRoles(): Promise<Role[]> {
-  const roles = await prisma.role.findMany();
-
-  return roles;
+export async function getAllRoles(filters: PaginationParams): Promise<Role[]> {
+  const { page = 1, limit = 10, ...remainingFilters } = filters;
+  const skip = (page - 1) * limit;
+  
+  return await prisma.role.findMany({where:{...remainingFilters}, skip, take: limit});
 }
 
 export async function getRoleById(id: string): Promise<RoleWithPermissions> {

@@ -1,6 +1,11 @@
+import config from "config";
 import { NextFunction, Request, Response } from "express";
 import type { Schema, SchemaLike } from "joi";
 import Joi from "joi";
+
+const DEFAULT_PAGE = config.get<number>("pagination.defaultPage");
+const DEFAULT_LIMIT = config.get<number>("pagination.defaultLimit");
+const MAX_LIMIT = config.get<number>("pagination.maxLimit");
 
 const JOI_OPTIONS: Joi.ValidationOptions = {
   abortEarly: true, // stop when first error occured
@@ -79,3 +84,7 @@ const validate = (scheme: RequestValidationSchemeInput | null) => {
 export default validate;
 
 export const objectIdValidation = Joi.string().hex().length(24);
+export const paginationParamsValidation = {
+  page: Joi.number().min(1).default(DEFAULT_PAGE).optional(), 
+  limit: Joi.number().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT).optional(),
+};
