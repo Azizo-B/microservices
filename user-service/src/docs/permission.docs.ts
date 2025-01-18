@@ -7,7 +7,7 @@
  *     tags:
  *       - Permission
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:

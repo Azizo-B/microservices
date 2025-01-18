@@ -11,8 +11,6 @@ import { EntityId, ListResponse } from "../types/common.types";
 import { CreateTokenInput, TokenFiltersWithPagination, TokenType, TokenWithStatus } from "../types/token.types";
 import { UserLoginInput } from "../types/user.types";
 
-// handles creation of verification and password reset tokens
-// TODO: send email with token -> Notification service
 export async function createToken(req: Request<{}, {}, CreateTokenInput>, res: Response<Token>, next: NextFunction) {
   try {
     req.body.deviceId = req.deviceId;

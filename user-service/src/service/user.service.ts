@@ -2,6 +2,7 @@ import { Token, User } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { verifyJWT } from "../core/jwt";
+import { publishEvent } from "../core/kafka";
 import { getLogger } from "../core/logging";
 import { hashPassword, verifyPassword } from "../core/password";
 import ServiceError from "../core/serviceError";
@@ -35,7 +36,7 @@ export async function createUser(userSignupInput: UserSignupInput): Promise<Publ
     }
 
     const passwordHash = await hashPassword(userSignupInput.password);
-    return makePublicUser(
+    const publicUser =  makePublicUser(
       await prisma.user.create({
         data: { 
           email: userSignupInput.email, 
@@ -45,6 +46,13 @@ export async function createUser(userSignupInput: UserSignupInput): Promise<Publ
         },
       }),
     );
+    
+    await publishEvent("userservice.user.created", {
+      userId: publicUser.id,
+      appId: publicUser.appId,
+    });
+    
+    return publicUser;
   }catch(error){
     handleDBError(error);
   }
@@ -266,6 +274,7 @@ export async function unlinkRoleFromUser(userId: string, roleId: string): Promis
   }
 }
 
+// TODO: maybe move to token service
 export async function validateAndRevokeToken(token: string): Promise<TokenIdentifiers>{
   try {
     const { sub, jwtid } = await verifyJWT(token);
@@ -284,7 +293,7 @@ export async function validateAndRevokeToken(token: string): Promise<TokenIdenti
       throw ServiceError.validationFailed("Token has no subject.");
     }
     
-    await prisma.token.update({ where: { id: jwtid }, data: { revokedAt:  new Date() } });
+    await prisma.token.updateMany({ where: { userId: sub, type: dbToken.type }, data: { revokedAt:  new Date() } });
 
     return {userId: sub, jwtid};
   } catch (error: any) {

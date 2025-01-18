@@ -1,6 +1,15 @@
 {
   "port": 9000,
   "server_url": "http://localhost:9000",
+  "kafka": {
+    "maxRetries": 5,
+    "initialDelay": 1000,
+    "config": {
+      "clientId": "user-service",
+      "brokers": "localhost:9092",
+      "connectionTimeout": 3000
+    }
+  },
   "log": {
     "level": "silly",
     "disabled": false

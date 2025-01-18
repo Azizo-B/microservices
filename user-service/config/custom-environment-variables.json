@@ -2,6 +2,15 @@
   "env": "NODE_ENV",
   "port": "PORT",
   "server_url": "SERVER_URL",
+  "kafka": {
+    "config": {
+      "brokers": "KAFKA_BROKERS",
+      "sasl": {
+        "username": "KAFKA_SASL_USERNAME",
+        "password": "KAFKA_SASL_PASSWORD"
+      }
+    }
+  },
   "auth": {
     "jwt": {
       "secret": "AUTH_JWT_SECRET"

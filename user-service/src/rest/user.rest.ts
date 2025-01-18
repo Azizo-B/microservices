@@ -6,8 +6,10 @@ import { authDelay, requireAuthentication, requirePermission } from "../core/aut
 import { collectDeviceInfo } from "../core/collectDeviceInfo";
 import validate, { objectIdValidation, paginationParamsValidation } from "../core/validation";
 import { createDevice } from "../service/device.service";
+import * as tokenService from "../service/token.service";
 import * as userService from "../service/user.service";
 import { EntityId, ListResponse } from "../types/common.types";
+import { TokenType } from "../types/token.types";
 import {
   AccountStatus, GetUserByIdResponse,
   PublicUser, ResetPasswordBody, UserFiltersWithPagination, UserRoleParams, UserSignupInput, UserUpdateInput,
@@ -18,7 +20,10 @@ async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response<P
   try {
     const user = await userService.createUser(req.body);
     req.userId = user.id;
-    await createDevice(req);
+    const deviceId = await createDevice(req);
+    await tokenService.createToken(user.id, {
+      appId: req.body.appId, type: TokenType.EMAIL_VERIFICATION, deviceId: deviceId,
+    });
     res.send(user);
   } catch (error) {
     next(error);

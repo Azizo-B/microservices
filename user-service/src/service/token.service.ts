@@ -1,9 +1,10 @@
 import { Token } from "@prisma/client";
 import config from "config";
 import { generateJWT } from "../core/jwt";
+import { publishEvent } from "../core/kafka";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
-import { CreateTokenInput, TokenFiltersWithPagination, TokenWithStatus } from "../types/token.types";
+import { CreateTokenInput, TokenFiltersWithPagination, TokenType, TokenWithStatus } from "../types/token.types";
 import handleDBError from "./_handleDBError";
 import { checkPermission } from "./user.service";
 
@@ -36,6 +37,21 @@ export async function createToken(userId: string, createTokenInput: CreateTokenI
     });
 
     tokenRecord.token = tokenString;
+
+    switch (tokenRecord.type) {
+      case TokenType.EMAIL_VERIFICATION:
+        await publishEvent("userservice.email_verification_token.created", {
+          userId: tokenRecord.userId,
+          tokenId: tokenRecord.id,
+        });
+        break;
+      case TokenType.PASSWORD_RESET:
+        await publishEvent("userservice.password_reset_token.created", {
+          userId: tokenRecord.userId,
+          tokenId: tokenRecord.id,
+        });
+        break;
+    }
     
     return tokenRecord;
   }catch(error){

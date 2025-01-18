@@ -83,8 +83,9 @@
  *          example: "6776f66b36f367b1e0f02bd3"
  *         type:
  *          type: string
+ *          enum: [reset_password, email_verification]
  *          description: The type of the token.
- *          example: "session"
+ *          example: "reset_password"
  *       required:
  *         - appId
  *         - type

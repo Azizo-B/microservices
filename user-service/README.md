@@ -8,13 +8,15 @@ This service streamlines user management by offering clear authentication, autho
 
 ## Features
 
-- **User Authentication & Authorization:** Secure login and registration with JWT-based authentication.
-- **Role & Permission Management:** Assign roles to users and define fine-grained permissions for access control.
-- **Password Reset:** Provide password reset functionality with email-based verification.
-- **Email Verification:** Verify email addresses for new users before full access is granted.
-- **Device Tracking:** Track devices that users are logged in from.
-- **Token Management:** Create, refresh, and revoke authentication tokens.
-- **Multi-Tenant Support:** Manage user accounts across different applications or services, ensuring isolation of data.
+- **Authentication & Authorization**: Secure login/registration with JWT tokens, with an introspection route to verify token validity and revocation.
+- **Role & Permission Management**: Assign roles and permissions to control access.
+- **Password Reset**: Request password reset via email.
+- **Email Verification**: Ensure users verify their email before full access is granted.
+- **Device & Session Management**: Track and manage active sessions and devices.
+- **Token Management**: Create, refresh, and revoke user authentication tokens.
+- **Multi-Tenant Support**: Manage users across multiple applications.
+- **User Event Notifications**: Optional Kafka integration for event-driven notifications (e.g., account creation, password reset). Kafka is required for this feature and will be disabled if not configured.
+- **User Profile Management**: Update user details and preferences.
 
 ## Getting Started
 
@@ -43,7 +45,17 @@ This service streamlines user management by offering clear authentication, autho
     PORT=9000              # Port on which the server will run
     DATABASE_URL=mongodb://localhost:27017/user-service   # MongoDB connection URL
     AUTH_JWT_SECRET=your_jwt_secret  # Secret key for JWT signing
+
+    # Optional Server URL if you have a prodcution version running will be used in /swagger
+    SERVER_URL=http://<production_domain>/
+
+    # Optional kafka variables
+    KAFKA_SASL_USERNAME=my-username # username if using sasl
+    KAFKA_SASL_PASSWORD=my-password # password if using sasl
+    KAFKA_BROKERS=my-broker1,my-broker2,my-broker3 # list of brokers comma separated
     ```
+
+    > **Note:** In `production` the start script does not load a .env file because it assumes environment variables are set directly on the server.
 
 3.  ### Apply the Database schema
 
@@ -122,6 +134,7 @@ Configuration settings are managed using the `config` package. You can find the 
 ### Project Structure
 
 ```
+config/                     # Configuration files
 src/
 ├── core/                   # Core utilities and middlewares
 ├── data/                   # Database connection and schema
@@ -130,7 +143,7 @@ src/
 ├── service/                # Business logic and services
 ├── types/                  # TypeScript types
 ├── index.ts                # Application entry point
-config/                     # Configuration files
+tests/                      # Apllication tests
 ```
 
 <br>
