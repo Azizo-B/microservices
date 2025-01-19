@@ -11,11 +11,10 @@ import { EntityId, ListResponse } from "../types/common.types";
 import { CreateTokenInput, TokenFiltersWithPagination, TokenType, TokenWithStatus } from "../types/token.types";
 import { UserLoginInput } from "../types/user.types";
 
-export async function createToken(req: Request<{}, {}, CreateTokenInput>, res: Response<Token>, next: NextFunction) {
+export async function createToken(req: Request<{}, {}, CreateTokenInput>, res: Response, next: NextFunction) {
   try {
-    req.body.deviceId = req.deviceId;
-    const token = await tokenService.createToken(req.userId, req.body);
-    res.status(201).send(token);
+    await tokenService.createToken(req.body);
+    res.status(201).send();
   } catch (error) {
     next(error);
   }
@@ -23,6 +22,7 @@ export async function createToken(req: Request<{}, {}, CreateTokenInput>, res: R
 createToken.validationSchema = {
   body: {
     appId: objectIdValidation,
+    userId: objectIdValidation,
     type: Joi.string().valid(TokenType.EMAIL_VERIFICATION, TokenType.PASSWORD_RESET),
   },
 };
@@ -93,11 +93,24 @@ deleteToken.validationSchema = {
   },
 };
 
+export async function introspectToken(
+  req: Request<{}, {}, {}, {token: string}>, res: Response<void>, next: NextFunction,
+) {
+  try {
+    await tokenService.checkToken(req.query.token);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
+introspectToken.validationSchema = { query: { token: Joi.string() } };
+
 export function installTokenRoutes(parentRouter: Router) {
   const router = Router();
 
+  router.get("/introspect", validate(introspectToken.validationSchema), introspectToken);
   router.post("/sessions", validate(login.validationSchema), authDelay, login);
-  router.post("/", requireAuthentication, collectDeviceInfo, validate(createToken.validationSchema), createToken);
+  router.post("/",  validate(createToken.validationSchema), createToken);
   router.get("/", requireAuthentication, collectDeviceInfo, validate(getAllTokens.validationSchema), getAllTokens);
   router.get("/:id", requireAuthentication, collectDeviceInfo, validate(getTokenById.validationSchema), getTokenById);
   router.delete("/:id",  requireAuthentication, collectDeviceInfo, validate(deleteToken.validationSchema), deleteToken);

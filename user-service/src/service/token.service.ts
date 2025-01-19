@@ -1,7 +1,9 @@
 import { Token } from "@prisma/client";
 import config from "config";
-import { generateJWT } from "../core/jwt";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import { generateJWT, verifyJWT } from "../core/jwt";
 import { publishEvent } from "../core/kafka";
+import { getLogger } from "../core/logging";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
 import { CreateTokenInput, TokenFiltersWithPagination, TokenType, TokenWithStatus } from "../types/token.types";
@@ -10,9 +12,9 @@ import { checkPermission } from "./user.service";
 
 const JWT_EXPIRATION_INTERVAL = config.get<number>("auth.jwt.expirationInterval");
 
-export async function createToken(userId: string, createTokenInput: CreateTokenInput): Promise<Token> {
+export async function createToken(createTokenInput: CreateTokenInput): Promise<Token> {
   try{
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ where: { id: createTokenInput.userId } });
 
     if (!user) {
       throw ServiceError.notFound("User not found.");
@@ -23,7 +25,7 @@ export async function createToken(userId: string, createTokenInput: CreateTokenI
         type: createTokenInput.type,
         expiresAt: new Date(Date.now() + JWT_EXPIRATION_INTERVAL * 1000),
         token: "",
-        user: { connect: { id: userId } },
+        user: { connect: { id: createTokenInput.userId } },
         ...(createTokenInput.deviceId && { device: { connect: { id: createTokenInput.deviceId } } }),
         application: { connect: { id: createTokenInput.appId } },
       },
@@ -125,3 +127,47 @@ export async function deleteToken(userId: string, tokenId: string): Promise<void
 export async function linkTokenToDevice(tokenId: string, deviceId: string): Promise<void> {
   await prisma.token.update({where: { id: tokenId }, data: { device: { connect: {id: deviceId }}}});
 }
+
+export async function parseToken(authHeader?: string): Promise<string> {
+  if (!authHeader) {
+    throw ServiceError.unauthorized("You need to be signed in.");
+  }
+
+  if (!authHeader.startsWith("Bearer ")) {
+    throw ServiceError.unauthorized("Invalid authentication token.");
+  }
+
+  return authHeader.substring(7);
+}
+
+export const checkToken = async (token: string): Promise<string> => {
+  try {
+    const { sub, jti } = await verifyJWT(token);
+
+    if (!jti || !sub) {
+      throw ServiceError.unauthorized("Invalid authentication token.");
+    }
+
+    const dbToken = await prisma.token.findUnique({ where: { id: jti } });
+
+    if (!dbToken) {
+      throw ServiceError.unauthorized("Invalid authentication token.");
+    }
+
+    if (dbToken.revokedAt) {
+      throw ServiceError.unauthorized("The token has been revoked.");
+    }
+
+    return sub;
+  } catch (error: any) {
+    getLogger().error(error.message, { error });
+
+    if (error instanceof TokenExpiredError) {
+      throw ServiceError.unauthorized("The token has expired.");
+    } else if (error instanceof JsonWebTokenError) {
+      throw ServiceError.unauthorized(`Invalid authentication token: ${error.message}`);
+    } else {
+      throw ServiceError.unauthorized(error.message);
+    }
+  }
+};

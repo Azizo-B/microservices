@@ -32,8 +32,6 @@
  * /api/tokens:
  *   post:
  *     summary: Creates a new token
- *     security:
- *       - bearerAuth: []
  *     description: Generates a new token for verification or password reset.
  *     tags:
  *       - Token
@@ -45,11 +43,7 @@
  *             $ref: '#/components/schemas/CreateTokenInput'
  *     responses:
  *       201:
- *         description: Token created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Token'
+ *         description: Token created successfully, see user inbox
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       401:
@@ -148,6 +142,34 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/TokenWithStatus'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+*/
+
+/**
+ * @swagger
+ * /api/tokens/introspect:
+ *   get:
+ *     summary: Check the validity of a token
+ *     description: Checks the validity and if it has expired, been revoked etc.
+ *     tags:
+ *       - Token
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: The token to validate
+ *     responses:
+ *       204:
+ *         description: Token is valid
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       401:

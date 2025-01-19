@@ -1,5 +1,6 @@
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
+import * as tokenService from "../service/token.service";
 import * as userService from "../service/user.service";
 import ServiceError from "./serviceError";
 
@@ -8,7 +9,8 @@ const AUTH_MAX_DELAY = config.get<number>("auth.maxDelay");
 export const requireAuthentication = async (req: Request, _: Response, next: NextFunction) => {
   try {
     const authorization = req.headers["authorization"] || "";
-    req.userId = await userService.checkAndParseToken(authorization);
+    const token = await tokenService.parseToken(authorization);
+    req.userId = await tokenService.checkToken(token);
     next();
   } catch (error) {
     next(error);

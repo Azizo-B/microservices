@@ -3,9 +3,10 @@ import { PaginationParams } from "./common.types";
 
 export interface CreateTokenInput {
   appId: string;
+  userId: string;
   deviceId?: string;
   type: string;
-};
+}
 
 export interface TokenWithStatus extends Token {
   isValid: boolean;
@@ -21,11 +22,11 @@ export enum TokenType {
 
 export interface TokenIdentifiers {
   userId: string;
-  jwtid: string;
+  jti: string;
 }
 
 export interface TokenFiltersWithPagination extends PaginationParams {
-  appId?: string
-  deviceId?: string
-  type?: TokenType
+  appId?: string;
+  deviceId?: string;
+  type?: TokenType;
 }

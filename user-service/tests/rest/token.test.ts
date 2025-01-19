@@ -184,8 +184,9 @@ describe("Token REST Layer", () => {
 
   describe("DELETE /api/tokens/:id", () => {
     it("should delete a token by ID", async () => {
+      const tokenToDelete = await login(request);
       const token = await prisma.token.findFirstOrThrow({
-        where: {token: userToken.replace("Bearer ", "")},
+        where: {token: tokenToDelete.replace("Bearer ", "")},
       });
           
       const response = await request

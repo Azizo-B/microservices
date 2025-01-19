@@ -21,8 +21,8 @@ async function createUser(req: Request<{}, {}, UserSignupInput>, res: Response<P
     const user = await userService.createUser(req.body);
     req.userId = user.id;
     const deviceId = await createDevice(req);
-    await tokenService.createToken(user.id, {
-      appId: req.body.appId, type: TokenType.EMAIL_VERIFICATION, deviceId: deviceId,
+    await tokenService.createToken( {
+      userId: user.id, appId: req.body.appId, type: TokenType.EMAIL_VERIFICATION, deviceId: deviceId,
     });
     res.send(user);
   } catch (error) {

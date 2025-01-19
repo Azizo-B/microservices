@@ -77,6 +77,10 @@
  *     CreateTokenInput:
  *       type: object
  *       properties:
+ *         userId:
+ *          type: string
+ *          description: The ID of the user for whom the token is intended.
+ *          example: "6776f66b36f367b1e0f02bd3"
  *         appId:
  *          type: string
  *          description: The application ID.

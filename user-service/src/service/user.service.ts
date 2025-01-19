@@ -3,30 +3,32 @@ import { JsonValue } from "@prisma/client/runtime/library";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { verifyJWT } from "../core/jwt";
 import { publishEvent } from "../core/kafka";
-import { getLogger } from "../core/logging";
 import { hashPassword, verifyPassword } from "../core/password";
 import ServiceError from "../core/serviceError";
 import { prisma } from "../data";
 import { TokenIdentifiers, TokenType } from "../types/token.types";
 import {
-  AccountStatus, GetUserByIdResponse,
+  AccountStatus,
+  GetUserByIdResponse,
   PublicUser,
   UserFiltersWithPagination,
-  UserLoginInput, UserSignupInput, UserUpdateInput,
+  UserLoginInput,
+  UserSignupInput,
+  UserUpdateInput,
 } from "../types/user.types";
 import handleDBError from "./_handleDBError";
 import * as tokenService from "./token.service";
 
-function makePublicUser(user: User): PublicUser{
-  const publicUser = {...user};
-  delete (publicUser as any).passwordHash; 
+function makePublicUser(user: User): PublicUser {
+  const publicUser = { ...user };
+  delete (publicUser as any).passwordHash;
   return publicUser;
 }
 
 export async function createUser(userSignupInput: UserSignupInput): Promise<PublicUser> {
-  try{
+  try {
     const user = await prisma.user.findUnique({
-      where: { 
+      where: {
         idx_unique_user_email_app_account: { email: userSignupInput.email, appId: userSignupInput.appId },
       },
     });
@@ -36,24 +38,24 @@ export async function createUser(userSignupInput: UserSignupInput): Promise<Publ
     }
 
     const passwordHash = await hashPassword(userSignupInput.password);
-    const publicUser =  makePublicUser(
+    const publicUser = makePublicUser(
       await prisma.user.create({
-        data: { 
-          email: userSignupInput.email, 
-          username: userSignupInput.username, 
-          passwordHash, 
-          application:{ connect: { id: userSignupInput.appId } },
+        data: {
+          email: userSignupInput.email,
+          username: userSignupInput.username,
+          passwordHash,
+          application: { connect: { id: userSignupInput.appId } },
         },
       }),
     );
-    
+
     await publishEvent("userservice.user.created", {
       userId: publicUser.id,
       appId: publicUser.appId,
     });
-    
+
     return publicUser;
-  }catch(error){
+  } catch (error) {
     handleDBError(error);
   }
 }
@@ -61,8 +63,8 @@ export async function createUser(userSignupInput: UserSignupInput): Promise<Publ
 // TODO : restrict deleted account / "inactive"
 export async function login(userLoginInput: UserLoginInput, deviceId?: string): Promise<Token> {
   const user = await prisma.user.findUnique({
-    where: { 
-      idx_unique_user_email_app_account:{ email: userLoginInput.email, appId: userLoginInput.appId },
+    where: {
+      idx_unique_user_email_app_account: { email: userLoginInput.email, appId: userLoginInput.appId },
     },
   });
 
@@ -73,7 +75,7 @@ export async function login(userLoginInput: UserLoginInput, deviceId?: string): 
   if (!user.isVerified) {
     throw ServiceError.unauthorized("Your email address is not verified. Please verify it before logging in.");
   }
-    
+
   const passwordValid = await verifyPassword(userLoginInput.password, user.passwordHash);
 
   if (!passwordValid) {
@@ -83,89 +85,62 @@ export async function login(userLoginInput: UserLoginInput, deviceId?: string): 
   if (user.status === AccountStatus.BANNED) {
     throw ServiceError.unauthorized("This account has been banned.");
   }
-  
-  const token = await tokenService.createToken(
-    user.id, { type: TokenType.SESSION, appId: userLoginInput.appId, deviceId: deviceId },
-  );
+
+  const token = await tokenService.createToken({
+    userId: user.id, 
+    type: TokenType.SESSION,
+    appId: userLoginInput.appId,
+    deviceId: deviceId,
+  });
 
   return token;
-};
-
-export const checkAndParseToken = async (authHeader?: string): Promise<string> => {
-  if (!authHeader) {
-    throw ServiceError.unauthorized("You need to be signed in.");
-  }
-
-  if (!authHeader.startsWith("Bearer ")) {
-    throw ServiceError.unauthorized("Invalid authentication token.");
-  }
-
-  const authToken = authHeader.substring(7);
-
-  try {
-    const { sub } = await verifyJWT(authToken);
-
-    return sub || "";
-  } catch (error: any) {
-    getLogger().error(error.message, { error });
-
-    if (error instanceof TokenExpiredError) {
-      throw ServiceError.unauthorized("The token has expired.");
-    } else if (error instanceof JsonWebTokenError) {
-      throw ServiceError.unauthorized(`Invalid authentication token: ${error.message}`);
-    } else {
-      throw ServiceError.unauthorized(error.message);
-    }
-  }
-};
+}
 
 export async function checkPermission(permission: string, userId: string): Promise<boolean> {
-  
-  const user = await prisma.user.findUnique({ 
-    where: { id: userId }, 
-    include: { 
-      roles: { 
-        include: { role: { include: { rolePermission: {include: { permission: true } } } } }, 
-      }, 
-    }, 
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      roles: {
+        include: { role: { include: { rolePermission: { include: { permission: true } } } } },
+      },
+    },
   });
-  
+
   if (!user) {
     throw ServiceError.notFound("User not found");
-  };
-  
-  const permissions = user.roles.flatMap((userRole) =>
-    userRole.role.rolePermission.map((rp) => rp.permission.name),
-  );
-  
+  }
+
+  const permissions = user.roles.flatMap((userRole) => userRole.role.rolePermission.map((rp) => rp.permission.name));
+
   return permissions.includes(permission);
-};
+}
 
 export async function getAllUsers(filters: UserFiltersWithPagination): Promise<PublicUser[]> {
   const { page = 1, limit = 10, ...remainingFilters } = filters;
   const skip = (page - 1) * limit;
-  
+
   const users = await prisma.user.findMany({
-    where: {...remainingFilters},
-    skip, take: limit,
+    where: { ...remainingFilters },
+    skip,
+    take: limit,
   });
-  return users.map((u)=> makePublicUser(u));
+  return users.map((u) => makePublicUser(u));
 }
 
 export async function getUserById(id: string, requestingUserId: string): Promise<GetUserByIdResponse> {
   id = id === "me" ? requestingUserId : id;
 
-  if (id !== requestingUserId && ! await checkPermission("userservice:read:any:user", requestingUserId)) {
+  if (id !== requestingUserId && !(await checkPermission("userservice:read:any:user", requestingUserId))) {
     throw ServiceError.notFound("User not found"); // Do not leak user information
   }
 
   const { roles, permissions } = await getUserRolesAndPermissions(id);
 
-  const user = await prisma.user.findUnique({ 
-    where: { id }, 
-    include: { 
-      application: {select:{name: true}},
-      devices: { 
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: {
+      application: { select: { name: true } },
+      devices: {
         select: {
           id: true,
           userAgent: true,
@@ -177,16 +152,16 @@ export async function getUserById(id: string, requestingUserId: string): Promise
           city: true,
           country: true,
           ips: { select: { ipAddress: true } },
-        }, 
-      }, 
-    }, 
+        },
+      },
+    },
   });
 
   if (!user) {
     throw ServiceError.notFound("User not found");
   }
-  // TODO: remove casting fix type 
-  return { 
+  // TODO: remove casting fix type
+  return {
     id: user.id,
     username: user.username,
     email: user.email,
@@ -211,7 +186,7 @@ export async function updateUserById(id: string, userUpdateInput: UserUpdateInpu
 export async function getUserProfile(id: string, requestingUserId: string) {
   id = id === "me" ? requestingUserId : id;
 
-  if (id !== requestingUserId && ! await checkPermission("userservice:read:any:profile", requestingUserId)) {
+  if (id !== requestingUserId && !(await checkPermission("userservice:read:any:profile", requestingUserId))) {
     throw ServiceError.notFound("User not found"); // Do not leak user information
   }
 
@@ -227,7 +202,7 @@ export async function getUserProfile(id: string, requestingUserId: string) {
 export async function updateUserProfile(id: string, profile: any, requestingUserId: string): Promise<JsonValue> {
   id = id === "me" ? requestingUserId : id;
 
-  if (id !== requestingUserId && ! await checkPermission("userservice:update:any:profile", requestingUserId)) {
+  if (id !== requestingUserId && !(await checkPermission("userservice:update:any:profile", requestingUserId))) {
     throw ServiceError.notFound("User not found"); // Do not leak user information
   }
 
@@ -267,7 +242,7 @@ export async function unlinkRoleFromUser(userId: string, roleId: string): Promis
     }
 
     await prisma.userRole.delete({
-      where: { idx_unique_roles_on_user:{ userId, roleId } },
+      where: { idx_unique_roles_on_user: { userId, roleId } },
     });
   } catch (error) {
     handleDBError(error);
@@ -275,11 +250,15 @@ export async function unlinkRoleFromUser(userId: string, roleId: string): Promis
 }
 
 // TODO: maybe move to token service
-export async function validateAndRevokeToken(token: string): Promise<TokenIdentifiers>{
+export async function validateAndRevokeToken(token: string): Promise<TokenIdentifiers> {
   try {
-    const { sub, jwtid } = await verifyJWT(token);
+    const { sub, jti } = await verifyJWT(token);
 
-    const dbToken = await prisma.token.findUnique({ where: { id: jwtid } });
+    if (!jti) {
+      throw ServiceError.validationFailed("Token has no jti.");
+    }
+
+    const dbToken = await prisma.token.findUnique({ where: { id: jti } });
 
     if (!dbToken) {
       throw ServiceError.validationFailed("Token not found.");
@@ -289,13 +268,13 @@ export async function validateAndRevokeToken(token: string): Promise<TokenIdenti
       throw ServiceError.validationFailed("Token has been revoked.");
     }
 
-    if(!sub){
+    if (!sub) {
       throw ServiceError.validationFailed("Token has no subject.");
     }
-    
-    await prisma.token.updateMany({ where: { userId: sub, type: dbToken.type }, data: { revokedAt:  new Date() } });
 
-    return {userId: sub, jwtid};
+    await prisma.token.updateMany({ where: { userId: sub, type: dbToken.type }, data: { revokedAt: new Date() } });
+
+    return { userId: sub, jti };
   } catch (error: any) {
     if (error instanceof TokenExpiredError) {
       throw ServiceError.validationFailed("The token has expired.");
@@ -305,7 +284,7 @@ export async function validateAndRevokeToken(token: string): Promise<TokenIdenti
       throw ServiceError.unauthorized(error.message);
     }
   }
-};
+}
 
 export async function markEmailAsVerified(token: string): Promise<TokenIdentifiers> {
   try {
@@ -315,7 +294,7 @@ export async function markEmailAsVerified(token: string): Promise<TokenIdentifie
   } catch (error: any) {
     handleDBError(error);
   }
-};
+}
 
 export async function updatePassword(token: string, newPassword: string): Promise<TokenIdentifiers> {
   try {
@@ -326,23 +305,25 @@ export async function updatePassword(token: string, newPassword: string): Promis
   } catch (error: any) {
     handleDBError(error);
   }
-};
+}
 
 export async function getUserRolesAndPermissions(id: string) {
-  const user =  await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id },
-    select: { roles: { select: { role: { select: 
-      { name: true, rolePermission: { select: { permission: { select: { name: true } } } } }, 
-    }}}},
+    select: {
+      roles: {
+        select: {
+          role: { select: { name: true, rolePermission: { select: { permission: { select: { name: true } } } } } },
+        },
+      },
+    },
   });
 
   if (!user) {
-    return {roles: [], permissions: []};
+    return { roles: [], permissions: [] };
   }
   const roles = user.roles.map((userRole) => userRole.role.name);
-  
-  const permissions = user.roles.flatMap((userRole) =>
-    userRole.role.rolePermission.map((rp) => rp.permission.name),
-  );
-  return {roles, permissions};
+
+  const permissions = user.roles.flatMap((userRole) => userRole.role.rolePermission.map((rp) => rp.permission.name));
+  return { roles, permissions };
 }
