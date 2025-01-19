@@ -1,0 +1,24 @@
+[Sender]
+*id
+type
+credentials
+
+[Notification]
+*id
+userId
+templateId
+recipient
+status
+errorMessage
+sentAt
+createdAt
+
+[NotificationTemplate]
+*id
+name
+subject
+type
+bodyLink
+
+NotificationTemplate 1--* Notification
+Sender 1--* Notification

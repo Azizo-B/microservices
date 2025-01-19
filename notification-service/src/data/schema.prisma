@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model NotificationTemplate {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String // Template name (e.g., 'welcome_email', 'password_reset')
+  subject  String // Subject for the notification (for email)
+  type     String // Type of notification (email, SMS, etc.)
+  bodyLink String // Link to where the body of the template is stored (e.g., GCS, S3)
+
+  notifications Notification[] @relation("NotificationNotificationTemplate")
+}
+
+model Sender {
+  id                   String @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String @db.ObjectId
+  name                 String
+  type                 String // Type of sender (SMTP, SMS API, etc.)
+  encryptedCredentials String // encrypted credentials object (e.g., API keys, SMTP server info)
+
+  notifications Notification[] @relation("NotificationSender")
+}
+
+model Notification {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String  @db.ObjectId
+  senderId   String  @db.ObjectId
+  templateId String? @db.ObjectId
+
+  type         String // Type of notification
+  recipient    String // Recipient's contact (e.g., email, phone number)
+  status       String // Status of the notification (e.g., 'pending', 'sent', 'failed')
+  errorMessage String? // Optional error message if sending failed
+  sentAt       DateTime? // Timestamp of when the notification was sent (null if not sent yet)
+  createdAt    DateTime  @default(now()) // Timestamp of when the notification record was created
+
+  sender   Sender?               @relation("NotificationSender", fields: [senderId], references: [id])
+  template NotificationTemplate? @relation("NotificationNotificationTemplate", fields: [templateId], references: [id])
+}

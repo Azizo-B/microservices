@@ -1,0 +1,13 @@
+{
+  "kafka": {
+    "config": {
+      "ssl": true,
+      "sasl": {
+        "mechanism": "plain"
+      }
+    }
+  },
+  "pagination": {
+    "maxLimit": 100
+  }
+}
