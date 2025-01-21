@@ -41,10 +41,12 @@ const retryWithBackoff = async (fn:() => Promise<void>, maxRetries: number, dela
   while (attempt < maxRetries) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (error: any) {
       attempt++;
       const backoffDelay = delay * Math.pow(2, attempt);
-      getLogger().warn(`Retry attempt ${attempt} failed. Retrying in ${backoffDelay}ms...`);
+      getLogger().warn(
+        `Retry attempt ${attempt} failed because of '${error.message}'. Retrying in ${backoffDelay}ms...`,
+      );
       if (attempt >= maxRetries) {
         getLogger().error("Max retries reached. Event publishing failed.", {error});
       } else await new Promise((resolve) => setTimeout(resolve, backoffDelay));

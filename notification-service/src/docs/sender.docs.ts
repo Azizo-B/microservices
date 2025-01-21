@@ -1,3 +1,4 @@
+// TODO: update credentials to ecrypted credentials
 /**
  * @swagger
  * components:
@@ -35,6 +36,32 @@
  *       type: object
  *       description: Represents a sender in the notification service.
  *       properties:
+ *         id:
+ *           type: string
+ *           description: The unique identifier for an entity
+ *           example: "507f1f77bcf86cd799439011"
+ *         userId:
+ *           type: string
+ *           description: The unique identifier of the user that created this sender.
+ *           example: "507f1f77bcf86cd799439011"
+ *         name:
+ *           type: string
+ *           description: The name of the sender
+ *         type:
+ *           type: string
+ *           description: The type of the sender (e.g., email, sms, etc.)
+ *         encryptedCredentials:
+ *           type: string
+ *           description: The encrypted credentials needed to send notifications using this sender.
+ *       required:
+ *         - name
+ *         - type
+ *         - credentials
+ *
+ *     CreateSenderInput:
+ *       type: object
+ *       description: Input data to update an existing sender.
+ *       properties:
  *         name:
  *           type: string
  *           description: The name of the sender
@@ -45,26 +72,6 @@
  *           oneOf:
  *             - $ref: '#/components/schemas/EmailCredentials'
  *           description: The credentials needed to send notifications using this sender.
- *       required:
- *         - name
- *         - type
- *         - credentials
- *
- *     CreateSenderInput:
- *       type: object
- *       allOf:
- *         - $ref: '#/components/schemas/Sender'
- *       description: Input data to create a new sender.
- *       required:
- *         - name
- *         - type
- *         - credentials
- *
- *     UpdateSenderInput:
- *       type: object
- *       allOf:
- *         - $ref: '#/components/schemas/Sender'
- *       description: Input data to update an existing sender.
  *       required:
  *         - name
  *         - type
@@ -108,6 +115,8 @@
  * /api/senders:
  *   get:
  *     summary: Retrieves all senders
+ *     security:
+ *       - bearerAuth: []
  *     description: Fetches all senders available in the system.
  *     tags:
  *       - Sender
@@ -153,6 +162,8 @@
  * /api/senders/{id}:
  *   get:
  *     summary: Retrieves a sender by ID
+ *     security:
+ *       - bearerAuth: []
  *     description: Fetches a sender associated with the provided sender ID.
  *     tags:
  *       - Sender
@@ -202,7 +213,7 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateSenderInput'
+ *             $ref: '#/components/schemas/CreateSenderInput'
  *     responses:
  *       200:
  *         description: Sender updated successfully

@@ -7,7 +7,7 @@
     "config": {
       "clientId": "user-service",
       "brokers": "localhost:9092",
-      "connectionTimeout": 3000
+      "connectionTimeout": 500000
     }
   },
   "log": {

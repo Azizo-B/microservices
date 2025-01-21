@@ -2,7 +2,6 @@ import config from "config";
 import cors from "cors";
 import type { Application, NextFunction, Request, Response } from "express";
 import express from "express";
-import statusMonitor from "express-status-monitor";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import swaggerOptions from "../../swagger.config";
@@ -29,8 +28,6 @@ export function installMiddlewares(app: Application) {
   const spec = swaggerJsdoc(swaggerOptions) as Record<string, unknown>;
 
   app.use("/swagger", swaggerUi.serve, swaggerUi.setup(spec));
-
-  app.use(statusMonitor());
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     getLogger().info(`⏩ ${req.method} ${req.url}`);

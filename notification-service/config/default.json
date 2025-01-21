@@ -1,8 +1,10 @@
 {
-  "port": 9000,
-  "server_url": "http://localhost:9000",
+  "port": 10000,
+  "server_url": "http://localhost:10000",
   "userService": {
-    "baseUrl": "http://localhost:9000"
+    "baseUrl": "http://localhost:9000",
+    "email": "admin@localhost.com",
+    "password": "admin"
   },
   "kafka": {
     "maxRetries": 5,
@@ -10,7 +12,7 @@
     "config": {
       "clientId": "notification-service",
       "brokers": "localhost:9092",
-      "connectionTimeout": 3000
+      "connectionTimeout": 35000
     }
   },
   "log": {
@@ -18,7 +20,7 @@
     "disabled": false
   },
   "cors": {
-    "origins": ["http://localhost:9000"],
+    "origins": ["http://localhost:10000", "http://localhost:3000"],
     "maxAge": 10800
   },
   "pagination": {
@@ -27,6 +29,7 @@
     "maxLimit": 200
   },
   "encryption": {
-    "key": "b3c043c0c5acbc766f6c223ef7a05bfd037053c43b0e80ae96ee7546de401fb1"
+    "key": "cb348f07b4b10f1d3281b940f8ecb976",
+    "ivLength": 16
   }
 }

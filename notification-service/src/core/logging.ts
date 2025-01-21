@@ -23,8 +23,12 @@ const rootLogger: winston.Logger = winston.createLogger({
         warning: "yellow",
       },
     }),
-    winston.format.printf(({ level, timestamp, message }) => {
-      return `[${ENV_STRINGS[ENV]}] - [${level}] - ${timestamp} - ${message}`;
+    winston.format.printf(({ level, timestamp, message, meta }) => {
+      let logMessage = `[${ENV_STRINGS[ENV]}] - [${level}] - ${timestamp} - ${message}`;
+      if (meta && Object.keys(meta).length > 0) {
+        logMessage += ` - Meta: ${JSON.stringify(meta)}`;
+      }
+      return logMessage;
     }),
   ),
   transports: [new winston.transports.Console({ silent: LOG_DISABLED })],

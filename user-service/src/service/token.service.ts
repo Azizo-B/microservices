@@ -10,6 +10,7 @@ import { CreateTokenInput, TokenFiltersWithPagination, TokenType, TokenWithStatu
 import handleDBError from "./_handleDBError";
 import { checkPermission } from "./user.service";
 
+const ENV = config.get<string>("env");
 const JWT_EXPIRATION_INTERVAL = config.get<number>("auth.jwt.expirationInterval");
 
 export async function createToken(createTokenInput: CreateTokenInput): Promise<Token> {
@@ -42,13 +43,13 @@ export async function createToken(createTokenInput: CreateTokenInput): Promise<T
 
     switch (tokenRecord.type) {
       case TokenType.EMAIL_VERIFICATION:
-        await publishEvent("userservice.email_verification_token.created", {
+        await publishEvent(`${ENV}.user-service.verification-token.created`, {
           userId: tokenRecord.userId,
           tokenId: tokenRecord.id,
         });
         break;
       case TokenType.PASSWORD_RESET:
-        await publishEvent("userservice.password_reset_token.created", {
+        await publishEvent(`${ENV}.user-service.reset-token.created`, {
           userId: tokenRecord.userId,
           tokenId: tokenRecord.id,
         });

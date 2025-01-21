@@ -1,5 +1,6 @@
 import { Token, User } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
+import config from "config";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { verifyJWT } from "../core/jwt";
 import { publishEvent } from "../core/kafka";
@@ -18,6 +19,8 @@ import {
 } from "../types/user.types";
 import handleDBError from "./_handleDBError";
 import * as tokenService from "./token.service";
+
+const ENV = config.get<string>("env");
 
 function makePublicUser(user: User): PublicUser {
   const publicUser = { ...user };
@@ -49,9 +52,8 @@ export async function createUser(userSignupInput: UserSignupInput): Promise<Publ
       }),
     );
 
-    await publishEvent("userservice.user.created", {
+    await publishEvent(`${ENV}.user-service.user.created`, {
       userId: publicUser.id,
-      appId: publicUser.appId,
     });
 
     return publicUser;
