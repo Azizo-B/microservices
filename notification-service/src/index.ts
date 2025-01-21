@@ -1,17 +1,17 @@
-import { connectProducer, disconnectProducer } from "./core/kafka";
+import { connectConsumer, disconnectConsumer } from "./core/kafka";
 import { getLogger } from "./core/logging";
 import { initializeData, shutdownData } from "./data";
 import { createServer } from "./server";
 
 async function main() {
   try {
-    await connectProducer();
+    await connectConsumer();
     await initializeData();
     const server = await createServer();
     await server.start();
       
     async function onClose() {
-      await disconnectProducer();
+      await disconnectConsumer();
       await shutdownData();
       getLogger().info("Goodbye! 👋");
       process.exit(0);

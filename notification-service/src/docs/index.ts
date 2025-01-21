@@ -2,6 +2,7 @@
  * @swagger
  * tags:
  *   - name: Sender
+ *   - name: Notification
  * components:
  *   securitySchemes:
  *     bearerAuth:

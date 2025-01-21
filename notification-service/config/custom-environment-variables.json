@@ -2,6 +2,11 @@
   "env": "NODE_ENV",
   "port": "PORT",
   "server_url": "SERVER_URL",
+  "userService": {
+    "baseUrl": "USER_SERVICE_URL",
+    "email": "USER_SERVICE_EMAIL",
+    "password": "USER_SERVICE_PASSWORD"
+  },
   "kafka": {
     "config": {
       "brokers": "KAFKA_BROKERS",

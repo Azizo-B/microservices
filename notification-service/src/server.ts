@@ -2,6 +2,7 @@ import config from "config";
 import express, { Application } from "express";
 import { installErrorHandlers, installMiddlewares } from "./core/installMiddleware";
 import { getLogger } from "./core/logging";
+import { installEvents } from "./event";
 import installRest from "./rest";
 
 const PORT = config.get<number>("port");
@@ -16,6 +17,7 @@ export async function createServer(): Promise<Server> {
 
   installMiddlewares(app);
   installRest(app);
+  installEvents();
   installErrorHandlers(app);
 
   return {

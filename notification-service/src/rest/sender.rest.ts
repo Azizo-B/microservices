@@ -6,6 +6,7 @@ import { requireAuthentication } from "../core/auth";
 import validate, { objectIdValidation, paginationParamsValidation } from "../core/validation";
 import * as senderService from "../service/sender.service";
 import { EntityId, ListResponse, PaginationParams } from "../types/common.types";
+import { NotificationType } from "../types/notification.types";
 import { CreateSenderInput, UpdateSenderInput } from "../types/sender.types";
 
 async function createSender(req: Request<{}, {}, CreateSenderInput>, res: Response<Sender>, next: NextFunction) {
@@ -19,21 +20,21 @@ async function createSender(req: Request<{}, {}, CreateSenderInput>, res: Respon
 
 const emailSenderSchema = Joi.object({
   name: Joi.string(),
-  type: Joi.string().valid("email"),
-  credentails: Joi.object({
+  type: Joi.string().valid(NotificationType.EMAIL),
+  credentials: Joi.object({
     smtpHost: Joi.string(),
     smtpPort: Joi.number(),
-    username: Joi.string(),
+    email: Joi.string(),
     password: Joi.string(),
   }),
 });
 
-createSender.validationSchema = { body: { emailSenderSchema } };
+createSender.validationSchema = { body: emailSenderSchema  };
 
 async function getAllSenders(
   req: Request<{}, {}, {}, PaginationParams>,
   res: Response<ListResponse<Sender>>,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const senders = await senderService.getAllSenders(req.userId, req.query);
