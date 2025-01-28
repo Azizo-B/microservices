@@ -20,9 +20,9 @@ export async function createPermission(createPermissionInput: CreatePermissionIn
 }
 
 export async function getAllPermissions(filters: PermissionFiltersWithPagination): Promise<Permission[]> {
-  const { userId, name, page = 1, limit = 10 } = filters;
+  const { userId, name, page = 0, limit = 10 } = filters;
 
-  const skip = (page - 1) * limit;
+  const skip = page * limit;
 
   return await prisma.permission.findMany({ 
     where:{

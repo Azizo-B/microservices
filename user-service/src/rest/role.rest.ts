@@ -56,7 +56,10 @@ async function updateRole(
     next(error);
   }
 }
-updateRole.validationSchema = {params: {id: objectIdValidation}, body: {name: Joi.string(), description: Joi.string()}};
+updateRole.validationSchema = {
+  params: {id: objectIdValidation}, 
+  body: {name: Joi.string().optional(), description: Joi.string().optional()},
+};
 
 async function deleteRole(req: Request<EntityId>, res: Response<void>, next: NextFunction) {
   try{

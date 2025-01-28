@@ -7,7 +7,11 @@
     "config": {
       "clientId": "user-service",
       "brokers": "localhost:9092",
-      "connectionTimeout": 500000
+      "connectionTimeout": 500000,
+      "ssl": true,
+      "sasl": {
+        "mechanism": "plain"
+      }
     }
   },
   "log": {
@@ -31,8 +35,8 @@
     }
   },
   "pagination": {
-    "defaultPage": 1,
+    "defaultPage": 0,
     "defaultLimit": 10,
-    "maxLimit": 200
+    "maxLimit": 500
   }
 }

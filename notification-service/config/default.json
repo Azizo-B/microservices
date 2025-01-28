@@ -12,7 +12,11 @@
     "config": {
       "clientId": "notification-service",
       "brokers": "localhost:9092",
-      "connectionTimeout": 35000
+      "connectionTimeout": 35000,
+      "ssl": true,
+      "sasl": {
+        "mechanism": "plain"
+      }
     }
   },
   "log": {
@@ -24,9 +28,9 @@
     "maxAge": 10800
   },
   "pagination": {
-    "defaultPage": 1,
+    "defaultPage": 0,
     "defaultLimit": 10,
-    "maxLimit": 200
+    "maxLimit": 500
   },
   "encryption": {
     "key": "cb348f07b4b10f1d3281b940f8ecb976",

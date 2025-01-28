@@ -63,8 +63,8 @@ export async function createToken(createTokenInput: CreateTokenInput): Promise<T
 }
 
 export async function getAllTokens(userId: string, filters: TokenFiltersWithPagination): Promise<Token[]> {
-  const { page = 1, limit = 10, ...remainingFilters } = filters;
-  const skip = (page - 1) * limit;
+  const { page = 0, limit = 10, ...remainingFilters } = filters;
+  const skip = page * limit;
   const filter: any = {where:{...remainingFilters}, skip, take: limit};
   
   const hasPermission = await checkPermission("userservice:list:any:token", userId);

@@ -1,12 +1,4 @@
 {
-  "kafka": {
-    "config": {
-      "ssl": true,
-      "sasl": {
-        "mechanism": "plain"
-      }
-    }
-  },
   "auth": {
     "jwt": {
       "expirationInterval": 604800

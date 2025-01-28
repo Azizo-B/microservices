@@ -24,8 +24,8 @@ export async function createSender(userId: string, createInput: CreateSenderInpu
 }
 
 export async function getAllSenders(userId: string, filters: PaginationParams): Promise<Sender[]> {
-  const { page = 1, limit = 10, ...remainingFilters } = filters;
-  const skip = (page - 1) * limit;
+  const { page = 0, limit = 10, ...remainingFilters } = filters;
+  const skip = page * limit;
 
   const filter: any = { where: { ...remainingFilters }, skip, take: limit };
 

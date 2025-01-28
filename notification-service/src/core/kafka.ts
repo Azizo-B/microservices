@@ -2,14 +2,15 @@ import config from "config";
 import { Kafka } from "kafkajs";
 import { getLogger } from "./logging";
 
+const ENV = config.get<string>("env");
 const MAX_RETRIES = config.get<number>("kafka.maxRetries");
 const INITIAL_DELAY = config.get<number>("kafka.initialDelay");
 const KAFKA_CONFIG = config.get<{
   clientId: string
   brokers: string[]
   connectionTimeout: number
-  ssl?: boolean
-  sasl?: {
+  ssl: boolean
+  sasl: {
     mechanism: "plain"
     username: string
     password: string
@@ -33,7 +34,7 @@ if (kafkaConfig.sasl) {
 }
 
 const kafka = new Kafka(kafkaConfig);
-const consumer = kafka.consumer({ groupId: "notification-service-group" });
+const consumer = kafka.consumer({ groupId: `${ENV}-notification-service-group` });
 let isConsumerConnected = false;
 
 const retryWithBackoff = async (fn:() => Promise<void>, maxRetries: number, delay: number) => {
@@ -79,6 +80,7 @@ export const consumeEvent = async (topic: string, eventHandler: (message: Record
           const event = JSON.parse(message.value?.toString() || "{}");
           getLogger().info(`Received event on topic ${topic}:${partition}:`, event);
           await eventHandler(event);
+          getLogger().info(`Event successfully consumed (topic: '${topic}')`);
         } catch (error) {
           getLogger().error(`Error processing message from topic ${topic}`, { error });
         }

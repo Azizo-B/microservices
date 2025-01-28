@@ -85,6 +85,6 @@ export default validate;
 
 export const objectIdValidation = Joi.string().hex().length(24);
 export const paginationParamsValidation = {
-  page: Joi.number().min(1).default(DEFAULT_PAGE).optional(), 
+  page: Joi.number().min(0).default(DEFAULT_PAGE).optional(), 
   limit: Joi.number().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT).optional(),
 };

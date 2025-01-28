@@ -19,8 +19,8 @@ export async function createRole(createRoleInput: CreateRoleInput): Promise<Role
 }
 
 export async function getAllRoles(filters: PaginationParams): Promise<Role[]> {
-  const { page = 1, limit = 10, ...remainingFilters } = filters;
-  const skip = (page - 1) * limit;
+  const { page = 0, limit = 10, ...remainingFilters } = filters;
+  const skip = page * limit;
   
   return await prisma.role.findMany({where:{...remainingFilters}, skip, take: limit});
 }

@@ -14,8 +14,8 @@ export async function createApplication(createAppInput: CreateApplicationInput):
 }
 
 export async function getAllApplications(filters: PaginationParams): Promise<Application[]> {
-  const { page = 1, limit = 10, ...remainingFilters } = filters;
-  const skip = (page - 1) * limit;
+  const { page = 0, limit = 10, ...remainingFilters } = filters;
+  const skip = page * limit;
   
   return await prisma.application.findMany({where:{...remainingFilters}, skip, take: limit});
 }

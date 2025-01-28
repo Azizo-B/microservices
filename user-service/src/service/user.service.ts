@@ -118,14 +118,23 @@ export async function checkPermission(permission: string, userId: string): Promi
 }
 
 export async function getAllUsers(filters: UserFiltersWithPagination): Promise<PublicUser[]> {
-  const { page = 1, limit = 10, ...remainingFilters } = filters;
-  const skip = (page - 1) * limit;
+  const { page = 0, limit = 10, email, ...remainingFilters } = filters;
+  const skip = page * limit;
 
   const users = await prisma.user.findMany({
-    where: { ...remainingFilters },
+    where: {
+      ...remainingFilters,
+      ...(email && {
+        email: {
+          contains: email,
+          mode: "insensitive",
+        },
+      }),
+    },
     skip,
     take: limit,
   });
+
   return users.map((u) => makePublicUser(u));
 }
 

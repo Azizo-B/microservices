@@ -9,8 +9,8 @@ import handleDBError from "./_handleDBError";
 import { checkPermission } from "./user.service";
 
 export async function getAllDevices(userId: string, filters: DeviceFiltersWithPagination): Promise<Device[]> {
-  const { page = 1, limit = 10, ...remainingFilters } = filters;
-  const skip = (page - 1) * limit;
+  const { page = 0, limit = 10, ...remainingFilters } = filters;
+  const skip = page * limit;
   const filter: any = {where:{...remainingFilters}, skip, take: limit};
   
   const hasPermission = await checkPermission("userservice:list:any:device", userId);
