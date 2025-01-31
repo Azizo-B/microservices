@@ -1,5 +1,5 @@
 import { JsonValue } from "@prisma/client/runtime/library";
-import { PaginationParams } from "./common.types";
+import { DateFilterParams, PaginationParams, SortingParams } from "./common.types";
 import { BasicDeviceInfo } from "./device.types";
 
 export interface UserLoginInput{
@@ -60,10 +60,10 @@ export interface ResetPasswordBody {
   newPassword: string;
 }
 
-export interface UserFiltersWithPagination extends PaginationParams {
+export type UserFilters =  {
   appId?: string
   username?: string
   email?: string
   status?: AccountStatus
   isVerified?: boolean
-}
+} & PaginationParams & DateFilterParams & SortingParams;

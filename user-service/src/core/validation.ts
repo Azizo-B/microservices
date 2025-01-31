@@ -84,7 +84,16 @@ const validate = (scheme: RequestValidationSchemeInput | null) => {
 export default validate;
 
 export const objectIdValidation = Joi.string().hex().length(24);
+
 export const paginationParamsValidation = {
   page: Joi.number().min(0).default(DEFAULT_PAGE).optional(), 
   limit: Joi.number().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT).optional(),
+};
+export const dateFilterParamsValidation = {
+  startDate: Joi.string().isoDate().optional(),
+  endDate: Joi.string().isoDate().optional(),
+};
+export const sortingParamsValidation = {
+  sortBy: Joi.string().optional(),
+  sortOrder: Joi.string().valid("asc", "desc").default("asc").optional(),
 };

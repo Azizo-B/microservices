@@ -4,7 +4,10 @@ import { Router } from "express";
 import Joi from "joi";
 import { authDelay, requireAuthentication, requirePermission } from "../core/auth";
 import { collectDeviceInfo } from "../core/collectDeviceInfo";
-import validate, { objectIdValidation, paginationParamsValidation } from "../core/validation";
+import validate, {
+  dateFilterParamsValidation, objectIdValidation, paginationParamsValidation,
+  sortingParamsValidation,
+} from "../core/validation";
 import { createDevice } from "../service/device.service";
 import * as tokenService from "../service/token.service";
 import * as userService from "../service/user.service";
@@ -12,7 +15,8 @@ import { EntityId, ListResponse } from "../types/common.types";
 import { TokenType } from "../types/token.types";
 import {
   AccountStatus, GetUserByIdResponse,
-  PublicUser, ResetPasswordBody, UserFiltersWithPagination, UserRoleParams, UserSignupInput, UserUpdateInput,
+  PublicUser, ResetPasswordBody, UserFilters,
+  UserRoleParams, UserSignupInput, UserUpdateInput,
   VerifyEmailBody,
 } from "../types/user.types";
 
@@ -62,7 +66,7 @@ async function resetPassword(req: Request<{}, {}, ResetPasswordBody>, res: Respo
 resetPassword.validationSchema = { body: { token: Joi.string(),  newPassword: Joi.string()} };
 
 async function getAllUsers(
-  req: Request<{}, {}, {}, UserFiltersWithPagination>, res: Response<ListResponse<PublicUser>>, next: NextFunction,
+  req: Request<{}, {}, {}, UserFilters>, res: Response<ListResponse<PublicUser>>, next: NextFunction,
 ) {
   try {
     const users = await userService.getAllUsers(req.query);
@@ -79,6 +83,8 @@ getAllUsers.validationSchema = {
     status: Joi.string().optional(),
     isVerified: Joi.boolean().optional(),
     ...paginationParamsValidation,
+    ...dateFilterParamsValidation,
+    ...sortingParamsValidation,
   },
 };
 

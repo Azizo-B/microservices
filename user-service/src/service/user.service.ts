@@ -12,7 +12,7 @@ import {
   AccountStatus,
   GetUserByIdResponse,
   PublicUser,
-  UserFiltersWithPagination,
+  UserFilters,
   UserLoginInput,
   UserSignupInput,
   UserUpdateInput,
@@ -89,7 +89,7 @@ export async function login(userLoginInput: UserLoginInput, deviceId?: string): 
   }
 
   const token = await tokenService.createToken({
-    userId: user.id, 
+    userId: user.id,
     type: TokenType.SESSION,
     appId: userLoginInput.appId,
     deviceId: deviceId,
@@ -117,8 +117,8 @@ export async function checkPermission(permission: string, userId: string): Promi
   return permissions.includes(permission);
 }
 
-export async function getAllUsers(filters: UserFiltersWithPagination): Promise<PublicUser[]> {
-  const { page = 0, limit = 10, email, ...remainingFilters } = filters;
+export async function getAllUsers(filters: UserFilters): Promise<PublicUser[]> {
+  const { page = 0, limit = 10, email, startDate, endDate, sortBy, sortOrder, ...remainingFilters } = filters;
   const skip = page * limit;
 
   const users = await prisma.user.findMany({
@@ -130,11 +130,19 @@ export async function getAllUsers(filters: UserFiltersWithPagination): Promise<P
           mode: "insensitive",
         },
       }),
+      createdAt: {
+        ...(startDate && {
+          gte: new Date(startDate),
+        }),
+        ...(endDate && {
+          lte: new Date(endDate),
+        }),
+      },
     },
     skip,
     take: limit,
+    orderBy: sortBy ? { [sortBy]: sortOrder || "asc" }: undefined,
   });
-
   return users.map((u) => makePublicUser(u));
 }
 
@@ -174,6 +182,7 @@ export async function getUserById(id: string, requestingUserId: string): Promise
   // TODO: remove casting fix type
   return {
     id: user.id,
+    appId:user.appId,
     username: user.username,
     email: user.email,
     status: user.status,
