@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  // type      String //(individual or company)
+  apps      String[] // List of app IDs linked to this company
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees Employee[] @relation("CompanyEmployees")
+  clients   Client[]   @relation("CompanyClients")
+}
+
+//TODO: @unique email by companyid
+model Employee {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String   @db.ObjectId
+  userId    String?
+  email     String
+  role      String // "admin", "manager", "viewer", etc.
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation("CompanyEmployees", fields: [companyId], references: [id])
+
+  @@unique([email, companyId], name: "idx_unique_employee_email")
+}
+
+model Client {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String   @db.ObjectId
+  name      String
+  type      String // (individual or company)
+  contact   String // Contact person or main email
+  details   Json? // Optional: Any additional client details (varies per context)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation("CompanyClients", fields: [companyId], references: [id])
+}

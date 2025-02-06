@@ -1,0 +1,35 @@
+{
+  "port": 9001,
+  "server_url": "http://localhost:9001",
+  "userService": {
+    "baseUrl": "http://localhost:9000",
+    "email": "admin@localhost.com",
+    "password": "admin"
+  },
+  "kafka": {
+    "maxRetries": 5,
+    "initialDelay": 1000,
+    "config": {
+      "clientId": "user-service",
+      "brokers": "localhost:9092",
+      "connectionTimeout": 500000,
+      "ssl": true,
+      "sasl": {
+        "mechanism": "plain"
+      }
+    }
+  },
+  "log": {
+    "level": "silly",
+    "disabled": false
+  },
+  "cors": {
+    "origins": ["http://localhost:9001", "http://localhost:3000"],
+    "maxAge": 10800
+  },
+  "pagination": {
+    "defaultPage": 0,
+    "defaultLimit": 10,
+    "maxLimit": 500
+  }
+}
